@@ -11,11 +11,14 @@ async function openGame(page) {
 }
 
 async function solveCurrentPuzzle(page) {
+  page.on('pageerror', error => console.log('PAGEERROR ' + error.message));
   const moves = await page.evaluate(() => currentItems.map((item, index) => ({ index, bin: item.bin })));
   for (const move of moves) {
     await page.locator(`[data-item="${move.index}"]`).click();
     await page.locator(`[data-bin="${move.bin}"]`).click();
   }
+  const diagnostic = await page.evaluate(() => ({ mode: { dailyMode, weeklyMode }, levelWon, currentCount: currentItems.length, placedCount: placed.filter(Boolean).length, placed, left: document.querySelector('#left')?.textContent, note: document.querySelector('#note')?.textContent, disabledItems: [...document.querySelectorAll('.item')].filter(item => item.disabled).length }));
+  console.log('PUZZLE_DIAGNOSTIC ' + JSON.stringify(diagnostic));
   await expect(page.locator('#modal')).toHaveClass(/show/, { timeout: 5000 });
 }
 
