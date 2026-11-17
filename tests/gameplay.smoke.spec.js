@@ -4,7 +4,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 async function openGame(page) {
   await page.addInitScript(() => {
-    localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 500 }));
+    if (!localStorage.getItem('pp_v02_save')) localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 500 }));
   });
   await page.goto('http://127.0.0.1:4173/');
   await expect(page.locator('#items .item').first()).toBeVisible();
