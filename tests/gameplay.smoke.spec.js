@@ -35,7 +35,7 @@ test('weekly challenge completes and shows its reward celebration', async ({ pag
   await expect(page.locator('#levelname')).toContainText('Weekly Challenge');
   await solveCurrentPuzzle(page);
   await expect(page.locator('.weekly-win-toast')).toContainText('WEEKLY CHALLENGE COMPLETE!');
-  await expect(page.locator('#rewardLine')).toContainText('50 coins');
+  await expect(page.locator('#winText')).toContainText('50 coins');
 });
 
 test('daily spin animates, awards a prize, and cannot be claimed twice', async ({ page }) => {
