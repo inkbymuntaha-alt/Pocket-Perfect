@@ -333,20 +333,20 @@ loadSave();refreshHeader();renderLevel();renderRoom();
  function pauseAudioForBackground(){
   backgroundPaused=true;
   if(musicTimer){clearTimeout(musicTimer);musicTimer=null;}
-  // Mute immediately as well as suspending Web Audio, so already-scheduled notes cannot leak.
-  if(audioCtx&&masterBus){
-   try{masterBus.gain.cancelScheduledValues(audioCtx.currentTime);masterBus.gain.setValueAtTime(0,audioCtx.currentTime);}catch(e){}
+  // Close the context, not just suspend it: this terminates every already-scheduled sound.
+  if(audioCtx){
+   const oldContext=audioCtx;
+   audioCtx=null;masterBus=null;musicBus=null;sfxBus=null;
+   oldContext.close().catch(()=>{});
   }
-  if(audioCtx&&audioCtx.state==="running")audioCtx.suspend().catch(()=>{});
  }
  function resumeAudioWhenVisible(){
   if(!backgroundPaused||document.hidden)return;
   backgroundPaused=false;
-  if(audioCtx){
-   audioCtx.resume().then(()=>{
-    if(masterBus)masterBus.gain.setTargetAtTime(.82,audioCtx.currentTime,.025);
-    if(musicOn&&!document.hidden&&!musicTimer)musicTick();
-   }).catch(()=>{});
+  // Create a fresh context only after Chrome has made the page visible again.
+  if(musicOn){
+   const c=audio();
+   if(c&&!document.hidden&&!musicTimer)musicTick();
   }
  }
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseAudioForBackground();else resumeAudioWhenVisible();});
