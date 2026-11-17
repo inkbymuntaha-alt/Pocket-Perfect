@@ -50,6 +50,20 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 #winIcon{display:inline-block;animation:winSparkle .7s cubic-bezier(.2,.8,.2,1) both}
 .item:focus-visible,.bin:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.item.correct-pop,.bin.correct-pop,#winIcon{animation:none!important;transition:none!important}}
+
+/* Room restoration expansion */
+.roomscene{height:190px}
+.room-rug{position:absolute;z-index:1;bottom:4%;left:29%;width:45%;height:25px;border-radius:50%;background:#d7b2c7;opacity:0;transition:opacity .3s,transform .3s;transform:scale(.7)}
+.room-rug.owned{opacity:1;transform:scale(1)}
+.room-art{position:absolute;z-index:1;left:48%;top:14%;width:37px;height:37px;border:4px solid #fff;background:#f6dca5;border-radius:5px;display:grid;place-items:center;font-size:20px;opacity:0;box-shadow:0 2px 5px #72839a55;transition:opacity .3s}
+.room-art.owned{opacity:1}
+.room-shelf{position:absolute;z-index:2;left:5%;bottom:18%;font-size:31px;color:#8b654b;opacity:0;transition:opacity .3s}
+.room-shelf.owned{opacity:1}
+.room-lights{position:absolute;z-index:3;left:22%;right:18%;top:5%;text-align:center;color:#e9b94e;letter-spacing:9px;font-size:15px;opacity:0;transition:opacity .3s}
+.room-lights.owned{opacity:1}
+.roomscene .floor{z-index:0}.roomscene .window{z-index:1}.roomscene .plant,.roomscene .sofa,.roomscene .lamp{z-index:2}
+@keyframes roomReveal{from{transform:scale(.65) translateY(8px);opacity:.2}to{transform:scale(1) translateY(0);opacity:1}}
+.roomscene .owned{animation:roomReveal .45s ease-out both}
 </style>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="Sort satisfying little puzzles, earn stars and restore a cozy room in Pocket Perfect.">
@@ -69,7 +83,7 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 </section>
 <section class="view" id="room">
 <div class="panel"><div class="row"><div><div class="section-title">Your cozy corner</div><div class="muted">Spend stars-earned coins to restore your space.</div></div><div class="levelpill" id="roomProgress">0/6</div></div>
-<div class="room"><div class="roomscene"><div class="window"></div><div class="floor"></div><div class="lamp" id="lamp">♧</div><div class="sofa" id="sofa">▱</div><div class="plant" id="plant">♧</div></div><div class="roomtitle">Little by little, lovely.</div><div class="muted">Every decoration is a small milestone. Items bought here are saved on this device.</div></div>
+<div class="room"><div class="roomscene"><div class="window"></div><div class="floor"></div><div class="room-rug" id="roomRug"></div><div class="room-art" id="roomArt">✿</div><div class="room-shelf" id="roomShelf">▤</div><div class="room-lights" id="roomLights">✦ · ✦ · ✦</div><div class="lamp" id="lamp">♧</div><div class="sofa" id="sofa">▱</div><div class="plant" id="plant">♧</div></div><div class="roomtitle">Little by little, lovely.</div><div class="muted">Every decoration is a small milestone. Items bought here are saved on this device.</div></div>
 <div class="section-title">Room upgrades</div><div class="decorlist" id="decorlist"></div></div>
 </section>
 <section class="view" id="daily">
@@ -129,7 +143,7 @@ default:'<circle cx="25" cy="25" r="17" fill="'+color+'"/><path d="M17 25h16m-8-
 const objectsByType={
 book:["book","book","book"],plant:["plant","plant","plant"],cup:["cup","cup","cup"],apple:["apple","apple","apple"],spoon:["spoon","spoon","spoon"],plate:["plate","plate","plate"],seed:["seed","seed","seed"],tool:["tool","tool","tool"],pot:["pot","pot","pot"],brush:["brush","brush","brush"],paint:["paint","paint","paint"],paper:["paper","paper","paper"],note:["note","note","note"],tag:["tag","tag","tag"],shirt:["shirt","shirt","shirt"],sock:["sock","sock","sock"],towel:["towel","towel","towel"],bear:["bear","bear","bear"],car:["car","car","car"],puzzle:["puzzle","puzzle","puzzle"],sandwich:["sandwich","sandwich","sandwich"],juice:["juice","juice","juice"],thread:["thread","thread","thread"],scissor:["scissor","scissor","scissor"],box:["box","box","box"],bed:["bed","bed","bed"],lamp:["lamp","lamp","lamp"],frame:["frame","frame","frame"],flower:["flower","flower","flower"]
 };
-const roomItems=[["🪴","Leafy plant",30,"plant"],["🛋️","Comfy sofa",45,"sofa"],["💡","Warm floor lamp",35,"lamp"],["🖼️","Art print",40,"frame"],["🧶","Soft rug",50,"rug"],["🪟","Window flowers",55,"flowers"]];
+const roomItems=[["🪴","Leafy plant",30,"plant"],["🛋️","Comfy sofa",45,"sofa"],["💡","Warm floor lamp",35,"lamp"],["🖼️","Art print",40,"frame"],["🧶","Soft rug",50,"rug"],["🪟","Window flowers",55,"flowers"],["📚","Little bookshelf",65,"shelf"],["✨","Fairy lights",70,"lights"],["🌼","Wall flower art",60,"art"],["🪻","Pastel floor mat",75,"mat"]];
 let state={level:0,coins:0,totalStars:0,streak:0,lastDaily:"",dailyClaimed:"",decor:[],completed:[],bestMoves:{}};let currentItems=[],placed=[],selected=null,moves=0,levelWon=false;
 const $=id=>document.getElementById(id);const today=()=>new Date().toISOString().slice(0,10);
 function save(){try{localStorage.setItem("pp_v02_save",JSON.stringify(state))}catch(e){}}
@@ -145,7 +159,7 @@ $("restart").onclick=renderLevel;$("hint").onclick=()=>{if(state.coins<15){$("no
 function setView(v){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));document.querySelectorAll(".view").forEach(el=>el.classList.toggle("active",el.id===v));}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>setView(b.dataset.view));$("dailyJump").onclick=()=>setView("daily");$("dailyPlay").onclick=()=>{setView("play");$("note").textContent="Daily challenge: finish today's puzzle to claim your bonus.";};
 $("continue").onclick=()=>{$("modal").classList.remove("show");renderLevel();};$("goRoom").onclick=()=>{$("modal").classList.remove("show");renderRoom();setView("room");};
-function renderRoom(){let owned=state.decor;const decor=roomItems;$("decorlist").innerHTML=decor.map((d,i)=>`<div class="decor"><b>${d[0]} ${d[1]}</b><small>${owned.includes(i)?"Already placed":d[2]+" coins"}</small><button data-buy="${i}" ${owned.includes(i)||state.coins<d[2]?"disabled":""}>${owned.includes(i)?"✓ Owned":"Unlock · "+d[2]+" ✧"}</button></div>`).join("");document.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buyDecor(+b.dataset.buy));$("plant").textContent=owned.includes(0)?"🪴":"♧";$("sofa").textContent=owned.includes(1)?"🛋️":"▱";$("lamp").textContent=owned.includes(2)?"💡":"♧";refreshHeader();}
+function renderRoom(){let owned=state.decor;const decor=roomItems;$("roomProgress").textContent=owned.length+"/"+decor.length;$("decorlist").innerHTML=decor.map((d,i)=>`<div class="decor"><b>${d[0]} ${d[1]}</b><small>${owned.includes(i)?"Placed in your room":d[2]+" coins"}</small><button data-buy="${i}" ${owned.includes(i)||state.coins<d[2]?"disabled":""}>${owned.includes(i)?"✓ Placed":"Unlock · "+d[2]+" ✧"}</button></div>`).join("");document.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buyDecor(+b.dataset.buy));$("plant").textContent=owned.includes(0)?"🪴":"♧";$("sofa").textContent=owned.includes(1)?"🛋️":"▱";$("lamp").textContent=owned.includes(2)?"💡":"♧";$("roomRug").classList.toggle("owned",owned.includes(4)||owned.includes(9));$("roomArt").classList.toggle("owned",owned.includes(3)||owned.includes(8));$("roomShelf").classList.toggle("owned",owned.includes(6));$("roomLights").classList.toggle("owned",owned.includes(7));if(owned.includes(5))$("plant").textContent="💐";refreshHeader();}
 function buyDecor(i){let d=roomItems[i];if(state.decor.includes(i)||state.coins<d[2])return;state.coins-=d[2];state.decor.push(i);save();renderRoom();}
 $("dailyJump").onclick=()=>setView("daily");
 loadSave();refreshHeader();renderLevel();renderRoom();
