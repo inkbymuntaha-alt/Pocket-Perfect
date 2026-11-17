@@ -403,8 +403,26 @@ loadSave();refreshHeader();renderLevel();renderRoom();
   if(meta.wins>=5&&!meta.badges.includes("Five Today"))meta.badges.push("Five Today");
   try{const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");if(Array.isArray(game.decor)&&game.decor.length>=6&&!meta.badges.includes("Room Restored"))meta.badges.push("Room Restored");}catch(e){}
   if(meta.wins>=3&&!meta.questClaimed){
-   meta.questClaimed=true;if(window.pocketPerfectShowCoinReward)window.pocketPerfectShowCoinReward(30);
-   try{if(typeof state!=="undefined"){state.coins+=30;if(typeof save==="function")save();if(typeof refreshHeader==="function")refreshHeader();}else{const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");game.coins=(Number(game.coins)||0)+30;localStorage.setItem("pp_v02_save",JSON.stringify(game));}}catch(e){}
+   meta.questClaimed=true;
+   let awarded=false;
+   try{
+    if(typeof state!=="undefined"){
+     state.coins+=30;
+     if(typeof save==="function")save();
+     if(typeof refreshHeader==="function")refreshHeader();
+     awarded=true;
+    }else{
+     const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");
+     game.coins=(Number(game.coins)||0)+30;
+     localStorage.setItem("pp_v02_save",JSON.stringify(game));
+     const coins=el("coins");if(coins)coins.textContent=game.coins;
+     awarded=true;
+    }
+   }catch(e){console.warn("Daily quest reward could not be saved",e);}
+   persist();renderMeta();
+   if(awarded&&window.pocketPerfectShowCoinReward){
+    requestAnimationFrame(()=>window.pocketPerfectShowCoinReward(30));
+   }
   }
   persist();renderMeta();
  }
