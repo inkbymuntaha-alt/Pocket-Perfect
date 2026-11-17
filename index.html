@@ -23,6 +23,15 @@ button{font:inherit}.app{max-width:560px;margin:auto;min-height:100vh;padding:13
 .storegrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.product{border:1px solid var(--line);border-radius:15px;padding:12px;background:#fff}.product .emoji{font-size:27px}.product b{display:block;font-size:12px;margin:4px 0}.product small{font-size:10px;color:var(--muted);display:block;min-height:26px}.product button{width:100%;margin-top:8px;border:0;border-radius:9px;padding:8px;background:#edf0f6;color:#667085;font-size:10px;font-weight:900}
 .footer{text-align:center;color:#9aa1b2;font-size:10px;margin:17px 0}.modal{display:none;position:fixed;inset:0;background:#121a31c9;z-index:5;align-items:center;justify-content:center;padding:20px}.modal.show{display:flex}.dialog{width:100%;max-width:350px;background:#fff;border-radius:24px;padding:22px;text-align:center;box-shadow:0 15px 50px #0003}.dialog h2{margin:6px 0;color:var(--navy)}.dialog p{font-size:12px;color:var(--muted);line-height:1.5}.bigstar{font-size:45px}.dialog .btn{width:100%;margin-top:7px}
 @media(max-width:360px){.board{gap:5px}.bin{min-height:106px}.item{min-height:60px}.app{padding:10px}}
+
+/* v1.0 polish */
+button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
+.milestone-card{margin-top:12px;background:linear-gradient(135deg,#f2f0ff,#f1faf5);border:1px solid #dcdaf3;border-radius:17px;padding:13px}
+.milestone-card h3{font-size:13px;color:var(--navy);margin:0 0 5px}
+.milestone-card p{font-size:11px;color:var(--muted);margin:0 0 9px;line-height:1.5}
+.quest-track{height:8px;background:#e3e5ef;border-radius:99px;overflow:hidden;margin:8px 0}
+.quest-fill{height:100%;width:0;background:linear-gradient(90deg,#56b998,#9bd9bd);transition:width .25s}
+.sound-toggle{flex:0 0 auto;min-width:94px}
 </style>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="Sort satisfying little puzzles, earn stars and restore a cozy room in Pocket Perfect.">
@@ -36,7 +45,7 @@ button{font:inherit}.app{max-width:560px;margin:auto;min-height:100vh;padding:13
 <section class="metrics"><div class="metric"><b id="levelstat">1/100</b><small>LEVEL</small></div><div class="metric"><b id="streak">0 🔥</b><small>DAY STREAK</small></div><div class="metric"><b id="starsTotal">0</b><small>STARS</small></div></section>
 <section class="view active" id="play">
 <div class="panel"><div class="row"><div><div class="section-title" id="levelname">Level 1 · Fresh Start</div><div class="muted" id="levelhint">Find the right home for every object.</div></div><div class="levelpill" id="left">9 LEFT</div></div><div class="progress"><div class="bar" id="progress"></div></div>
-<div class="board" id="bins"></div><div class="itemshead"><b class="section-title" style="font-size:12px">Objects to organize</b><span class="muted">Tap object → matching basket</span></div><div class="items" id="items"></div><div class="note" id="note">Pick an object to get started.</div><div class="actions"><button class="btn" id="restart">↻ Restart</button><button class="btn primary" id="hint">✦ Hint · 15</button></div>
+<div class="board" id="bins"></div><div class="itemshead"><b class="section-title" style="font-size:12px">Objects to organize</b><span class="muted">Tap object → matching basket</span></div><div class="items" id="items"></div><div class="note" id="note">Pick an object to get started.</div><div class="actions"><button class="btn" id="restart">↻ Restart</button><button class="btn primary" id="hint">✦ Hint · 15</button><button class="btn sound-toggle" id="soundToggle" aria-pressed="true">♫ Sound: On</button></div>
 </div>
 <div class="dailycard"><b>✦ Tiny daily goal</b><p>Finish one puzzle today to keep your streak alive and collect a bonus.</p><button class="btn gold" id="dailyJump">View daily challenge</button></div>
 </section>
@@ -127,4 +136,47 @@ loadSave();refreshHeader();renderLevel();renderRoom();
       window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(err => console.warn("Offline setup unavailable", err)));
     }
   </script>
+
+<script>
+/* Pocket Perfect v1.0: daily quest, milestones and optional original sound */
+(()=>{
+ const KEY="pp_v1_meta", day=()=>new Date().toISOString().slice(0,10);
+ let meta={day:day(),wins:0,questClaimed:false,badges:[]};
+ try{meta={...meta,...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch(e){}
+ if(meta.day!==day()){meta.day=day();meta.wins=0;meta.questClaimed=false;}
+ const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(meta))}catch(e){}};
+ const el=id=>document.getElementById(id);
+ let soundOn=localStorage.getItem("pp_sound")!=="off";
+ function renderMeta(){
+  if(!el("questProgress"))return;
+  el("questProgress").textContent=Math.min(3,meta.wins)+" / 3 levels";
+  el("questFill").style.width=Math.min(100,meta.wins/3*100)+"%";
+  el("questReward").textContent=meta.questClaimed?"Claimed ✓":"+30 ✧";
+  el("achievementLine").textContent="Achievements: "+(meta.badges.length?meta.badges.join(" · "):"first clear, 5 clears and room restoration");
+  if(el("soundToggle")){el("soundToggle").textContent=soundOn?"♫ Sound: On":"♫ Sound: Off";el("soundToggle").setAttribute("aria-pressed",String(soundOn));}
+ }
+ function tone(freq,duration){
+  if(!soundOn)return;
+  try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const c=new C(),o=c.createOscillator(),g=c.createGain();o.type="sine";o.frequency.value=freq;g.gain.setValueAtTime(.0001,c.currentTime);g.gain.exponentialRampToValueAtTime(.07,c.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+duration+.02);o.onended=()=>c.close();}catch(e){}
+ }
+ function awardWin(){
+  if(meta.day!==day()){meta.day=day();meta.wins=0;meta.questClaimed=false;}
+  meta.wins++;
+  if(!meta.badges.includes("First Perfect"))meta.badges.push("First Perfect");
+  if(meta.wins>=5&&!meta.badges.includes("Five Today"))meta.badges.push("Five Today");
+  try{const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");if(Array.isArray(game.decor)&&game.decor.length>=6&&!meta.badges.includes("Room Restored"))meta.badges.push("Room Restored");}catch(e){}
+  if(meta.wins>=3&&!meta.questClaimed){
+   meta.questClaimed=true;
+   try{const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");game.coins=(Number(game.coins)||0)+30;localStorage.setItem("pp_v02_save",JSON.stringify(game));}catch(e){}
+  }
+  persist();renderMeta();tone(660,.18);setTimeout(()=>tone(880,.2),120);
+ }
+ const modal=el("modal");
+ if(modal){let wasOpen=modal.classList.contains("show");new MutationObserver(()=>{const open=modal.classList.contains("show");if(open&&!wasOpen)awardWin();wasOpen=open;}).observe(modal,{attributes:true,attributeFilter:["class"]});}
+ const note=el("note");
+ if(note)new MutationObserver(()=>{const t=note.textContent||"";if(t.includes("A perfect fit"))tone(740,.09);else if(t.includes("Not quite"))tone(190,.12);}).observe(note,{childList:true,subtree:true,characterData:true});
+ if(el("soundToggle"))el("soundToggle").onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("pp_sound",soundOn?"on":"off")}catch(e){}renderMeta();if(soundOn)tone(540,.12);};
+ renderMeta();
+})();
+</script>
 </body></html>
