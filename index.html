@@ -170,7 +170,7 @@ function renderActiveLevel(){if(dailyMode)renderDailyLevel();else renderLevel();
 function pick(i){if(levelWon||placed[i])return;selected=i;document.querySelectorAll(".item").forEach(el=>el.classList.toggle("picked",+el.dataset.item===i));$("note").textContent="Now choose the matching basket.";}
 function put(bin){if(levelWon)return;if(selected===null){$("note").textContent="Choose an object first.";return;}let item=currentItems[selected];moves++;if(item.bin===bin){placed[selected]=true;let el=document.querySelector(`[data-item="${selected}"]`);el.disabled=true;el.classList.remove("picked");el.classList.add("correct-pop");let basket=document.querySelector(`[data-bin="${bin}"]`);if(basket){basket.classList.add("correct-pop");setTimeout(()=>basket.classList.remove("correct-pop"),520);}let dot=document.createElement("span");dot.className="mini";$("slot"+bin).appendChild(dot);$("note").textContent="A perfect fit. ✦";}else{$("note").textContent="Not quite — try a different basket.";document.querySelector(`[data-item="${selected}"]`).classList.remove("picked");}selected=null;updateProgress();if(placed.every(Boolean))win();}
 function updateProgress(){let done=placed.filter(Boolean).length;$("left").textContent=(placed.length-done)+" LEFT";$("progress").style.width=(done/placed.length*100)+"%";}
-function showCoinReward(amount){if(!amount||amount<=0)return;const wallet=document.querySelector(".wallet");if(wallet){wallet.classList.remove("coin-pop");void wallet.offsetWidth;wallet.classList.add("coin-pop");setTimeout(()=>wallet.classList.remove("coin-pop"),650);const tag=document.createElement("span");tag.className="coin-float";tag.textContent="+"+amount+" ✧";wallet.appendChild(tag);setTimeout(()=>tag.remove(),1050);}if(window.pocketPerfectCoinReward)window.pocketPerfectCoinReward();}
+function showCoinReward(amount,playSound=true){if(!amount||amount<=0)return;const wallet=document.querySelector(".wallet");if(wallet){wallet.classList.remove("coin-pop");void wallet.offsetWidth;wallet.classList.add("coin-pop");setTimeout(()=>wallet.classList.remove("coin-pop"),650);const tag=document.createElement("span");tag.className="coin-float";tag.textContent="+"+amount+" ✧";wallet.appendChild(tag);setTimeout(()=>tag.remove(),1050);}if(playSound&&window.pocketPerfectCoinReward)window.pocketPerfectCoinReward();}
 window.pocketPerfectShowCoinReward=showCoinReward;
 function showCoinSpend(amount){if(!amount||amount<=0)return;const wallet=document.querySelector('.wallet');if(!wallet)return;const tag=document.createElement('span');tag.className='coin-float coin-spend';tag.textContent='-'+amount+' ✧';wallet.appendChild(tag);setTimeout(()=>tag.remove(),1050);}
 function win(){levelWon=true;let coinsBefore=state.coins,starsBefore=state.totalStars;let stars=moves<=placed.length+2?3:moves<=placed.length*1.65?2:1;let t=today(),first=!dailyMode&&!state.completed.includes(state.level),dailyFirst=dailyMode&&state.dailyPuzzleClaimed!==t;if(first){state.completed.push(state.level);state.totalStars+=stars;state.coins+=stars*10+5+(currentData.golden?20:0);state.bestMoves[state.level]=Math.min(state.bestMoves[state.level]||999,moves);state.level=Math.min(99,state.level+1);}if(dailyMode&&dailyFirst){state.dailyPuzzleClaimed=t;state.totalStars+=stars;state.coins+=20;}if(state.lastDaily!==t){state.streak=state.lastDaily?Math.max(1,state.streak+1):1;state.lastDaily=t;}if(state.dailyClaimed!==t){state.coins+=25;state.dailyClaimed=t;}const coinGain=Math.max(0,state.coins-coinsBefore),starGain=Math.max(0,state.totalStars-starsBefore);save();refreshHeader();if(coinGain>0)showCoinReward(coinGain);if(window.pocketPerfectAwardDailyQuest)window.pocketPerfectAwardDailyQuest();$("rewardLine").textContent=coinGain||starGain?`+${coinGain} coins · +${starGain} stars`:"Replay complete · no repeat rewards";$("winIcon").textContent="★".repeat(stars);$("winTitle").textContent=dailyMode?(dailyFirst?"Daily challenge complete!":"Beautiful replay!"):(first?"Room for more joy!":"Lovely replay!");$("winText").textContent=dailyMode?`You earned ${stars} stars.${dailyFirst?" +20 daily challenge coins!":" Your daily reward has already been collected."} ${state.dailyClaimed===t?" Daily bonus collected.":""}`:`You earned ${stars} stars. ${first?"A first clear adds coins and moves your room restoration forward.":"Your best score is saved; replaying does not farm completion coins."} Daily bonus: +25 coins when eligible.`;$("modal").classList.add("show");if(window.pocketPerfectCelebrate)window.pocketPerfectCelebrate();}
@@ -315,6 +315,19 @@ loadSave();refreshHeader();renderLevel();renderRoom();
   });
  }
  window.pocketPerfectCoinReward=coinRewardSound;
+ function dailyQuestRewardSound(){
+  if(!soundOn)return;
+  const c=audio();if(!c)return;
+  const now=c.currentTime;
+  [659.25,783.99,987.77,1318.51,1567.98].forEach((freq,i)=>{
+   const when=now+i*.12,o=c.createOscillator(),g=c.createGain();
+   o.type="sine";o.frequency.setValueAtTime(freq,when);
+   g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(.075,when+.018);
+   g.gain.exponentialRampToValueAtTime(.0001,when+.28);
+   o.connect(g);g.connect(sfxBus);o.start(when);o.stop(when+.3);
+  });
+ }
+ window.pocketPerfectDailyQuestSound=dailyQuestRewardSound;
  function celebrationSound(){
   if(!soundOn)return;
   const c=audio();if(!c)return;
@@ -421,7 +434,7 @@ loadSave();refreshHeader();renderLevel();renderRoom();
     }
    }catch(e){console.warn("Daily quest reward could not be saved",e);}
    persist();renderMeta();
-   if(awarded&&window.pocketPerfectShowCoinReward)window.pocketPerfectShowCoinReward(30);
+   if(awarded&&window.pocketPerfectShowCoinReward)window.pocketPerfectShowCoinReward(30,false);if(awarded&&window.pocketPerfectDailyQuestSound)window.pocketPerfectDailyQuestSound();
   }
   persist();renderMeta();
  }
