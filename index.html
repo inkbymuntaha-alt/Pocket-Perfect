@@ -189,7 +189,7 @@ function renderRoom(justUnlocked=null){let owned=state.decor;const decor=roomIte
 if(justUnlocked!==null){
  const sceneTarget={0:"plant",1:"sofa",2:"lamp",3:"roomArt",4:"roomRug",5:"plant",6:"roomShelf",7:"roomLights",8:"roomArt",9:"roomRug"}[justUnlocked];
  const target=$(sceneTarget);if(target){target.classList.remove("decor-unlock");void target.offsetWidth;target.classList.add("decor-unlock");}
- const toast=document.createElement("div");toast.className="decor-toast";toast.innerHTML="<strong>✦ Beautiful choice! ✦</strong><span>"+decor[j ustUnlocked][0]+" "+decor[justUnlocked][1]+" added to your cozy room · "+owned.length+"/"+decor.length+"</span>".replace("j ust","just");
+ const toast=document.createElement("div");toast.className="decor-toast";toast.innerHTML="<strong>✦ Beautiful choice! ✦</strong><span>"+decor[justUnlocked][0]+" "+decor[justUnlocked][1]+" added to your cozy room · "+owned.length+"/"+decor.length+"</span>";
  document.body.appendChild(toast);setTimeout(()=>toast.remove(),2400);
  if(window.pocketPerfectDecorUnlockSound)window.pocketPerfectDecorUnlockSound();
 }
@@ -341,7 +341,22 @@ loadSave();refreshHeader();renderLevel();renderRoom();
    o.connect(g);g.connect(sfxBus);o.start(when);o.stop(when+.3);
   });
  }
- window.pocketPerfectDailyQuestSound=dailyQuestRewardSound;
+ 
+window.pocketPerfectDailyQuestSound=dailyQuestRewardSound;
+ function decorUnlockSound(){
+  if(!soundOn)return;
+  const c=audio();if(!c)return;
+  const now=c.currentTime;
+  [523.25,659.25,783.99,1046.5].forEach((freq,i)=>{
+   const when=now+i*.105,o=c.createOscillator(),g=c.createGain(),filter=c.createBiquadFilter();
+   o.type=i===3?"sine":"triangle";o.frequency.setValueAtTime(freq,when);
+   filter.type="lowpass";filter.frequency.setValueAtTime(3200,when);
+   g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(.052,when+.018);
+   g.gain.exponentialRampToValueAtTime(.0001,when+.26);
+   o.connect(filter);filter.connect(g);g.connect(sfxBus);o.start(when);o.stop(when+.28);
+  });
+ }
+ window.pocketPerfectDecorUnlockSound=decorUnlockSound;
  function celebrationSound(){
   if(!soundOn)return;
   const c=audio();if(!c)return;
