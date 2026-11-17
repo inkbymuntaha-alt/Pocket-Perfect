@@ -167,7 +167,7 @@ loadSave();refreshHeader();renderLevel();renderRoom();
   try{const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");if(Array.isArray(game.decor)&&game.decor.length>=6&&!meta.badges.includes("Room Restored"))meta.badges.push("Room Restored");}catch(e){}
   if(meta.wins>=3&&!meta.questClaimed){
    meta.questClaimed=true;
-   try{const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");game.coins=(Number(game.coins)||0)+30;localStorage.setItem("pp_v02_save",JSON.stringify(game));}catch(e){}
+   try{if(typeof state!=="undefined"){state.coins+=30;if(typeof save==="function")save();if(typeof refreshHeader==="function")refreshHeader();}else{const game=JSON.parse(localStorage.getItem("pp_v02_save")||"{}");game.coins=(Number(game.coins)||0)+30;localStorage.setItem("pp_v02_save",JSON.stringify(game));}}catch(e){}
   }
   persist();renderMeta();tone(660,.18);setTimeout(()=>tone(880,.2),120);
  }
