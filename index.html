@@ -333,16 +333,27 @@ loadSave();refreshHeader();renderLevel();renderRoom();
  function pauseAudioForBackground(){
   backgroundPaused=true;
   if(musicTimer){clearTimeout(musicTimer);musicTimer=null;}
+  // Mute immediately as well as suspending Web Audio, so already-scheduled notes cannot leak.
+  if(audioCtx&&masterBus){
+   try{masterBus.gain.cancelScheduledValues(audioCtx.currentTime);masterBus.gain.setValueAtTime(0,audioCtx.currentTime);}catch(e){}
+  }
   if(audioCtx&&audioCtx.state==="running")audioCtx.suspend().catch(()=>{});
  }
  function resumeAudioWhenVisible(){
   if(!backgroundPaused||document.hidden)return;
   backgroundPaused=false;
-  if(musicOn&&audioCtx){
-   audioCtx.resume().then(()=>{if(musicOn&&!document.hidden&&!musicTimer)musicTick();}).catch(()=>{});
+  if(audioCtx){
+   audioCtx.resume().then(()=>{
+    if(masterBus)masterBus.gain.setTargetAtTime(.82,audioCtx.currentTime,.025);
+    if(musicOn&&!document.hidden&&!musicTimer)musicTick();
+   }).catch(()=>{});
   }
  }
  document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseAudioForBackground();else resumeAudioWhenVisible();});
+ window.addEventListener("blur",pauseAudioForBackground);
+ window.addEventListener("focus",()=>{if(!document.hidden)resumeAudioWhenVisible();});
+ document.addEventListener("freeze",pauseAudioForBackground);
+ document.addEventListener("resume",()=>{if(!document.hidden)resumeAudioWhenVisible();});
  window.addEventListener("pagehide",pauseAudioForBackground);
  window.addEventListener("pageshow",()=>{if(!document.hidden)resumeAudioWhenVisible();});
 
