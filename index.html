@@ -76,6 +76,12 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 .room-lights.owned{opacity:1}
 .roomscene .floor{z-index:0}.roomscene .window{z-index:1}.roomscene .plant,.roomscene .sofa,.roomscene .lamp{z-index:2}
 @keyframes roomReveal{from{transform:scale(.65) translateY(8px);opacity:.2}to{transform:scale(1) translateY(0);opacity:1}}
+@keyframes decorUnlockPop{0%{transform:scale(.35) translateY(18px) rotate(-12deg);opacity:0;filter:brightness(1.5)}55%{transform:scale(1.22) translateY(-7px) rotate(5deg);opacity:1}78%{transform:scale(.92) translateY(2px)}100%{transform:scale(1);opacity:1;filter:none}}
+.roomscene .decor-unlock{animation:decorUnlockPop .78s cubic-bezier(.2,.8,.2,1) both}
+.decor-toast{position:fixed;z-index:20;left:50%;bottom:24px;transform:translateX(-50%);width:min( calc(100% - 32px),360px);padding:13px 16px;border-radius:18px;background:#18213f;color:#fff;text-align:center;box-shadow:0 10px 35px #18213f55;animation:toastArrive .35s ease-out both;pointer-events:none}
+.decor-toast strong{display:block;font-size:15px;margin-bottom:3px}.decor-toast span{font-size:12px;color:#dce5f8}
+@keyframes toastArrive{from{opacity:0;transform:translate(-50%,16px) scale(.92)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.roomscene .decor-unlock,.decor-toast{animation:none!important}}
 .roomscene .owned{animation:roomReveal .45s ease-out both}
 </style>
   <link rel="manifest" href="manifest.webmanifest">
@@ -179,8 +185,16 @@ $("restart").onclick=renderActiveLevel;$("hint").onclick=()=>{if(levelWon)return
 function setView(v){document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.view===v));document.querySelectorAll(".view").forEach(el=>el.classList.toggle("active",el.id===v));}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>setView(b.dataset.view));$("dailyJump").onclick=()=>setView("daily");$("dailyPlay").onclick=()=>{setView("play");renderDailyLevel();};
 $("continue").onclick=()=>{$("modal").classList.remove("show");renderActiveLevel();};$("goRoom").onclick=()=>{$("modal").classList.remove("show");renderRoom();setView("room");};
-function renderRoom(){let owned=state.decor;const decor=roomItems;$("roomProgress").textContent=owned.length+"/"+decor.length;$("decorlist").innerHTML=decor.map((d,i)=>`<div class="decor"><b>${d[0]} ${d[1]}</b><small>${owned.includes(i)?"Placed in your room":d[2]+" coins"}</small><button data-buy="${i}" ${owned.includes(i)||state.coins<d[2]?"disabled":""}>${owned.includes(i)?"✓ Placed":"Unlock · "+d[2]+" ✧"}</button></div>`).join("");document.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buyDecor(+b.dataset.buy));$("plant").textContent=owned.includes(0)?"🪴":"♧";$("sofa").textContent=owned.includes(1)?"🛋️":"▱";$("lamp").textContent=owned.includes(2)?"💡":"♧";$("roomRug").classList.toggle("owned",owned.includes(4)||owned.includes(9));$("roomArt").classList.toggle("owned",owned.includes(3)||owned.includes(8));$("roomShelf").classList.toggle("owned",owned.includes(6));$("roomLights").classList.toggle("owned",owned.includes(7));if(owned.includes(5))$("plant").textContent="💐";refreshHeader();}
-function buyDecor(i){let d=roomItems[i];if(state.decor.includes(i)||state.coins<d[2])return;state.coins-=d[2];state.decor.push(i);save();renderRoom();}
+function renderRoom(justUnlocked=null){let owned=state.decor;const decor=roomItems;$("roomProgress").textContent=owned.length+"/"+decor.length;$("decorlist").innerHTML=decor.map((d,i)=>`<div class="decor"><b>${d[0]} ${d[1]}</b><small>${owned.includes(i)?"Placed in your room":d[2]+" coins"}</small><button data-buy="${i}" ${owned.includes(i)||state.coins<d[2]?"disabled":""}>${owned.includes(i)?"✓ Placed":"Unlock · "+d[2]+" ✧"}</button></div>`).join("");document.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buyDecor(+b.dataset.buy));$("plant").textContent=owned.includes(0)?"🪴":"♧";$("sofa").textContent=owned.includes(1)?"🛋️":"▱";$("lamp").textContent=owned.includes(2)?"💡":"♧";$("roomRug").classList.toggle("owned",owned.includes(4)||owned.includes(9));$("roomArt").classList.toggle("owned",owned.includes(3)||owned.includes(8));$("roomShelf").classList.toggle("owned",owned.includes(6));$("roomLights").classList.toggle("owned",owned.includes(7));if(owned.includes(5))$("plant").textContent="💐";
+if(justUnlocked!==null){
+ const sceneTarget={0:"plant",1:"sofa",2:"lamp",3:"roomArt",4:"roomRug",5:"plant",6:"roomShelf",7:"roomLights",8:"roomArt",9:"roomRug"}[justUnlocked];
+ const target=$(sceneTarget);if(target){target.classList.remove("decor-unlock");void target.offsetWidth;target.classList.add("decor-unlock");}
+ const toast=document.createElement("div");toast.className="decor-toast";toast.innerHTML="<strong>✦ Beautiful choice! ✦</strong><span>"+decor[j ustUnlocked][0]+" "+decor[justUnlocked][1]+" added to your cozy room · "+owned.length+"/"+decor.length+"</span>".replace("j ust","just");
+ document.body.appendChild(toast);setTimeout(()=>toast.remove(),2400);
+ if(window.pocketPerfectDecorUnlockSound)window.pocketPerfectDecorUnlockSound();
+}
+refreshHeader();}
+function buyDecor(i){let d=roomItems[i];if(state.decor.includes(i)||state.coins<d[2])return;state.coins-=d[2];state.decor.push(i);save();renderRoom(i);}
 $("dailyJump").onclick=()=>setView("daily");
 loadSave();refreshHeader();renderLevel();renderRoom();
 </script>  <script>
