@@ -4,7 +4,7 @@ test.use({ viewport: { width: 390, height: 844 } });
 
 async function openGame(page) {
   await page.addInitScript(() => {
-    localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 500 }));
+    if (!localStorage.getItem('pp_v02_save')) localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 500 }));
   });
   await page.goto('http://127.0.0.1:4173/');
   await expect(page.locator('#items .item').first()).toBeVisible();
@@ -54,4 +54,72 @@ test('room decoration can be unlocked and appears as owned', async ({ page }) =>
   await expect(page.locator('#roomProgress')).toContainText('1/10');
   await expect(page.locator('[data-buy="0"]')).toBeDisabled();
   await expect(page.locator('#roomLeafyPlant')).toHaveClass(/owned/);
+});
+
+
+test('hint costs exactly five coins and undo restores a move', async ({ page }) => {
+  await openGame(page);
+  const before = Number(await page.locator('#coins').textContent());
+  await page.locator('#hint').click();
+  await expect(page.locator('#coins')).toHaveText(String(before - 5));
+  await expect(page.locator('#note')).toContainText('(-5');
+  const first = page.locator('.item:not(:disabled)').first();
+  await first.click();
+  const wrongBin = await page.evaluate(() => {
+    const index = Number(document.querySelector('.item:not(:disabled)').dataset.item);
+    const correct = currentItems[index].bin;
+    return [0, 1, 2].find(bin => bin !== correct);
+  });
+  await page.locator(`[data-bin="${wrongBin}"]`).click();
+  await expect(page.locator('#undo')).toBeEnabled();
+  await page.locator('#undo').click();
+  await expect(page.locator('#undo')).toBeDisabled();
+  await expect(page.locator('#note')).toContainText('undone');
+});
+
+test('restart resets puzzle progress without losing wallet balance', async ({ page }) => {
+  await openGame(page);
+  const before = await page.locator('#coins').textContent();
+  const first = page.locator('.item:not(:disabled)').first();
+  await first.click();
+  const index = Number(await first.getAttribute('data-item'));
+  const correctBin = await page.evaluate(index => currentItems[index].bin, index);
+  await page.locator(`[data-bin="${correctBin}"]`).click();
+  await expect(page.locator('#undo')).toBeEnabled();
+  await page.locator('#restart').click();
+  await expect(page.locator('#undo')).toBeDisabled();
+  await expect(page.locator('#coins')).toHaveText(before);
+  await expect(page.locator('.item:not(:disabled)')).toHaveCount(await page.locator('.item').count());
+});
+
+test('campaign progress and coin balance survive a page reload', async ({ page }) => {
+  await openGame(page);
+  await solveCurrentPuzzle(page);
+  await page.locator('#continue').click();
+  await expect(page.locator('#levelname')).toContainText('Level 2');
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.completed).toContain(0);
+  expect(saved.level).toBe(1);
+  const coins = saved.coins;
+  await page.reload();
+  await expect(page.locator('#levelname')).toContainText('Level 2');
+  await expect(page.locator('#coins')).toHaveText(String(coins));
+  await page.locator('[data-view="levels"]').click();
+  await expect(page.locator('[data-level="0"]')).toContainText('Completed');
+  await expect(page.locator('[data-level="1"]')).toContainText('Current level');
+  await expect(page.locator('[data-level="2"]')).toBeDisabled();
+});
+
+test('mobile layout keeps navigation and gameplay controls visible', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await openGame(page);
+  await expect(page.locator('.tabs')).toBeVisible();
+  await expect(page.locator('#items')).toBeVisible();
+  await expect(page.locator('#bins')).toBeVisible();
+  await expect(page.locator('#restart')).toBeVisible();
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    page: document.documentElement.scrollWidth
+  }));
+  expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport + 1);
 });
