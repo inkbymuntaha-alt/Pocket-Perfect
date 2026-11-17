@@ -123,3 +123,34 @@ test('mobile layout keeps navigation and gameplay controls visible', async ({ pa
   }));
   expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport + 1);
 });
+
+
+test('all 100 generated campaign levels have valid, solvable sorting data', async ({ page }) => {
+  await openGame(page);
+  const result = await page.evaluate(() => {
+    const levels = Array.from({ length: 100 }, (_, index) => {
+      const data = levelData(index);
+      const bins = [...new Set(data.items.map(item => item.bin))].sort();
+      return {
+        countMatches: data.items.length === data.count,
+        threeCategories: data.labels.length === 3,
+        binsValid: data.items.every(item => Number.isInteger(item.bin) && item.bin >= 0 && item.bin < 3),
+        allBinsUsed: bins.join(',') === '0,1,2',
+        goldenCorrect: data.golden === ((index + 1) % 10 === 0)
+      };
+    });
+    const dailyA = dailyLevelData();
+    const dailyB = dailyLevelData();
+    const weeklyA = weeklyLevelData();
+    const weeklyB = weeklyLevelData();
+    return {
+      levels,
+      dailyStable: JSON.stringify(dailyA.items) === JSON.stringify(dailyB.items),
+      weeklyStable: JSON.stringify(weeklyA.items) === JSON.stringify(weeklyB.items)
+    };
+  });
+  expect(result.levels).toHaveLength(100);
+  expect(result.levels.every(level => Object.values(level).every(Boolean))).toBe(true);
+  expect(result.dailyStable).toBe(true);
+  expect(result.weeklyStable).toBe(true);
+});
