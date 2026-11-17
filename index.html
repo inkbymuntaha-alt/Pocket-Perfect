@@ -36,6 +36,10 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 .audio-toggle{flex:0 0 auto;min-width:100px}
 .audio-toggle[aria-pressed="true"]{background:#e5f5ec;color:#286b50;border:1px solid #b9dfca}
 @media(max-width:390px){.actions{gap:7px}.actions .btn{padding:12px 9px;font-size:11px}.sound-toggle,.audio-toggle{min-width:0}}
+
+/* Mobile layout: keep all four gameplay controls visible */
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.actions .btn{width:100%;min-width:0;box-sizing:border-box;padding:13px 8px;font-size:12px;white-space:normal}
 </style>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="Sort satisfying little puzzles, earn stars and restore a cozy room in Pocket Perfect.">
@@ -69,7 +73,7 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 <div class="product"><div class="emoji">🎁</div><b>Cozy collection</b><small>Exclusive decor and themes.</small><button disabled>Coming after Play Billing setup</button></div>
 </div><div class="dailycard"><b>Rewarded ads: integration pending</b><p>In the published game, players may voluntarily watch an ad for a hint or bonus coins. No ads are served in this prototype.</p><button class="btn" disabled>Ad network not connected</button></div></div>
 </section>
-<div class="footer">Prototype 0.2 · Original code and vector artwork · Progress saved on this device</div>
+<div class="footer">Pocket Perfect · Original code and vector artwork · Progress saved on this device</div>
 </main>
 <div class="modal" id="modal"><div class="dialog"><div class="bigstar" id="winIcon">✦</div><h2 id="winTitle">Lovely work!</h2><p id="winText">You sorted everything perfectly.</p><button class="btn primary" id="continue">Continue</button><button class="btn" id="goRoom">Decorate my room</button></div></div>
 <script>
