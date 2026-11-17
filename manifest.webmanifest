@@ -1,0 +1,19 @@
+{
+  "name": "Pocket Perfect: Sort & Restore",
+  "short_name": "Pocket Perfect",
+  "description": "Sort puzzles and restore a cozy room.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f1f3f8",
+  "theme_color": "#18213f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
