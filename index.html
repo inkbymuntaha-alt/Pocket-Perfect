@@ -218,7 +218,7 @@ loadSave();refreshHeader();renderLevel();renderRoom();
  let activeTrack=null;
  function makeTrack(level,daily){
   const world=daily?8:Math.floor(Math.max(0,level)/10)%10,variant=daily?17:Math.max(0,level)%10,theme=musicWorlds[world];
-  const transpositions=[0,2,-2,3,-3,5,1,-1,4,-4],root=theme.root*Math.pow(2/(2),0)*Math.pow(2,(daily?7:transpositions[variant])/12);
+  const transpositions=[0,2,-2,3,-3,5,1,-1,4,-4],root=theme.root*Math.pow(2,(daily?7:transpositions[variant])/12);
   const motif=levelMotifs[daily?4:variant],melody=[];
   for(let i=0;i<32;i++){
    const degree=theme.scale[motif[i%16]%theme.scale.length];
@@ -289,7 +289,7 @@ loadSave();refreshHeader();renderLevel();renderRoom();
  function musicTick(){
   if(!musicOn)return;
   if(!activeTrack)activeTrack=makeTrack(0,false);
-  const c=audio(),now=c.currentTime,step=musicStep%activeTrack.melody.length;
+  const c=audio();if(!c)return;const now=c.currentTime,step=musicStep%activeTrack.melody.length;
   if(musicStep%8===0)pad(activeTrack.chords[Math.floor(musicStep/8)%activeTrack.chords.length],now);
   if(musicStep%4===0)bass(activeTrack.root*.5,now);
   pluck(activeTrack.melody[step],now,.075,activeTrack.wave);
