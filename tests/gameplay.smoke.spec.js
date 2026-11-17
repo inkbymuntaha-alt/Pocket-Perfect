@@ -157,3 +157,20 @@ test('all 500 generated campaign levels have valid, solvable sorting data', asyn
   await expect(page.locator('#levelGrid .level-choice')).toHaveCount(500);
   await expect(page.locator('[data-level="499"]')).toBeDisabled();
 });
+
+
+test('completing level 500 shows the final campaign celebration', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 499,
+      completed: Array.from({ length: 499 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#levelname')).toContainText('Level 500');
+  await solveCurrentPuzzle(page);
+  await expect(page.locator('.levelup-card')).toContainText('ALL LEVELS COMPLETE!');
+  await expect(page.locator('.levelup-card')).toContainText('500 LEVELS MASTERED');
+});
