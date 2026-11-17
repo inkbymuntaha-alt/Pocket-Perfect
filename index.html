@@ -148,11 +148,10 @@ loadSave();refreshHeader();renderLevel();renderRoom();
  const el=id=>document.getElementById(id);
  let soundOn=localStorage.getItem("pp_sound")!=="off";
  function renderMeta(){
-  if(!el("questProgress"))return;
-  el("questProgress").textContent=Math.min(3,meta.wins)+" / 3 levels";
-  el("questFill").style.width=Math.min(100,meta.wins/3*100)+"%";
-  el("questReward").textContent=meta.questClaimed?"Claimed ✓":"+30 ✧";
-  el("achievementLine").textContent="Achievements: "+(meta.badges.length?meta.badges.join(" · "):"first clear, 5 clears and room restoration");
+  if(el("questProgress"))el("questProgress").textContent=Math.min(3,meta.wins)+" / 3 levels";
+  if(el("questFill"))el("questFill").style.width=Math.min(100,meta.wins/3*100)+"%";
+  if(el("questReward"))el("questReward").textContent=meta.questClaimed?"Claimed ✓":"+30 ✧";
+  if(el("achievementLine"))el("achievementLine").textContent="Achievements: "+(meta.badges.length?meta.badges.join(" · "):"first clear, 5 clears and room restoration");
   if(el("soundToggle")){el("soundToggle").textContent=soundOn?"♫ Sound: On":"♫ Sound: Off";el("soundToggle").setAttribute("aria-pressed",String(soundOn));}
  }
  function tone(freq,duration){
