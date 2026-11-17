@@ -326,7 +326,26 @@ loadSave();refreshHeader();renderLevel();renderRoom();
   // A soft sparkle answers the applause.
   [1318.51,1567.98,1975.53].forEach((freq,i)=>setTimeout(()=>playNote(freq,.34,.035,"sine"),760+i*115));
  }
+
  window.pocketPerfectCelebrate=celebrationSound;
+ // Pocket Perfect background audio lifecycle: pause completely when the app is hidden.
+ let backgroundPaused=false;
+ function pauseAudioForBackground(){
+  backgroundPaused=true;
+  if(musicTimer){clearTimeout(musicTimer);musicTimer=null;}
+  if(audioCtx&&audioCtx.state==="running")audioCtx.suspend().catch(()=>{});
+ }
+ function resumeAudioWhenVisible(){
+  if(!backgroundPaused||document.hidden)return;
+  backgroundPaused=false;
+  if(musicOn&&audioCtx){
+   audioCtx.resume().then(()=>{if(musicOn&&!document.hidden&&!musicTimer)musicTick();}).catch(()=>{});
+  }
+ }
+ document.addEventListener("visibilitychange",()=>{if(document.hidden)pauseAudioForBackground();else resumeAudioWhenVisible();});
+ window.addEventListener("pagehide",pauseAudioForBackground);
+ window.addEventListener("pageshow",()=>{if(!document.hidden)resumeAudioWhenVisible();});
+
  function musicTick(){
   if(!musicOn)return;
   if(!activeTrack)activeTrack=makeTrack(0,false);
