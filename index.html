@@ -245,7 +245,7 @@ loadSave();refreshHeader();renderLevel();renderRoom();
    sfxBus=audioCtx.createGain();sfxBus.gain.value=.72;
    musicBus.connect(masterBus);sfxBus.connect(masterBus);masterBus.connect(compressor);compressor.connect(audioCtx.destination);
   }
-  if(audioCtx.state==="suspended")audioCtx.resume();
+  if(audioCtx.state==="suspended"&&!document.hidden&&!backgroundPaused)audioCtx.resume();
   return audioCtx;
  }
  function playNote(freq,duration,volume,type){
@@ -347,7 +347,7 @@ loadSave();refreshHeader();renderLevel();renderRoom();
  window.addEventListener("pageshow",()=>{if(!document.hidden)resumeAudioWhenVisible();});
 
  function musicTick(){
-  if(!musicOn)return;
+  if(!musicOn||document.hidden||backgroundPaused){musicTimer=null;return;}
   if(!activeTrack)activeTrack=makeTrack(0,false);
   const c=audio();if(!c)return;const now=c.currentTime,step=musicStep%activeTrack.melody.length;
   if(musicStep%8===0)pad(activeTrack.chords[Math.floor(musicStep/8)%activeTrack.chords.length],now);
