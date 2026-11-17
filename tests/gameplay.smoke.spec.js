@@ -153,4 +153,7 @@ test('all 500 generated campaign levels have valid, solvable sorting data', asyn
   expect(result.levels.every(level => Object.values(level).every(Boolean))).toBe(true);
   expect(result.dailyStable).toBe(true);
   expect(result.weeklyStable).toBe(true);
+  await page.locator('[data-view="levels"]').click();
+  await expect(page.locator('#levelGrid .level-choice')).toHaveCount(500);
+  await expect(page.locator('[data-level="499"]')).toBeDisabled();
 });
