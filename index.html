@@ -294,16 +294,37 @@ loadSave();refreshHeader();renderLevel();renderRoom();
  }
  function celebrationSound(){
   if(!soundOn)return;
-  playNote(660,.2,.085,"sine");setTimeout(()=>playNote(784,.22,.085,"sine"),115);setTimeout(()=>playNote(988,.3,.095,"sine"),245);
   const c=audio();if(!c)return;
-  for(let n=0;n<3;n++){
-   const size=Math.floor(c.sampleRate*.045),buffer=c.createBuffer(1,size,c.sampleRate),data=buffer.getChannelData(0);
-   for(let i=0;i<size;i++)data[i]=(Math.random()*2-1)*(1-i/size);
-   const source=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain(),when=c.currentTime+.04+n*.19;
-   source.buffer=buffer;filter.type="bandpass";filter.frequency.value=1450;filter.Q.value=.8;
-   gain.gain.setValueAtTime(.0001,when);gain.gain.exponentialRampToValueAtTime(.052,when+.006);gain.gain.exponentialRampToValueAtTime(.0001,when+.075);
+  // A bright, original victory fanfare: rising major arpeggio with a warm final chord.
+  const notes=[659.25,783.99,987.77,1174.66,1318.51];
+  notes.forEach((freq,i)=>{
+   const when=c.currentTime+i*.16;
+   [1,2].forEach((partial,j)=>{
+    const o=c.createOscillator(),g=c.createGain(),filter=c.createBiquadFilter();
+    o.type=j===0?"triangle":"sine";o.frequency.setValueAtTime(freq*partial,when);
+    filter.type="lowpass";filter.frequency.setValueAtTime(j===0?3600:2600,when);
+    const peak=(i===4?.075:.055)/(j===0?1:2.8);
+    g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(peak,when+.025);
+    g.gain.exponentialRampToValueAtTime(.0001,when+.42);
+    o.connect(filter);filter.connect(g);g.connect(sfxBus);o.start(when);o.stop(when+.45);
+   });
+  });
+  // Layered handclap-like bursts with a sharp attack and short room tail.
+  for(let n=0;n<13;n++){
+   const when=c.currentTime+.12+n*.145,size=Math.floor(c.sampleRate*.16);
+   const buffer=c.createBuffer(1,size,c.sampleRate),data=buffer.getChannelData(0);
+   for(let i=0;i<size;i++){
+    const t=i/size,decay=Math.exp(-t*19);
+    data[i]=(Math.random()*2-1)*decay*(.72+.28*Math.sin(i*.19+n));
+   }
+   const source=c.createBufferSource(),filter=c.createBiquadFilter(),gain=c.createGain();
+   source.buffer=buffer;filter.type="bandpass";filter.frequency.value=1150+(n%4)*260;filter.Q.value=.72;
+   gain.gain.setValueAtTime(.0001,when);gain.gain.exponentialRampToValueAtTime(.19,when+.004);
+   gain.gain.exponentialRampToValueAtTime(.0001,when+.145);
    source.connect(filter);filter.connect(gain);gain.connect(sfxBus);source.start(when);
   }
+  // A soft sparkle answers the applause.
+  [1318.51,1567.98,1975.53].forEach((freq,i)=>setTimeout(()=>playNote(freq,.34,.035,"sine"),760+i*115));
  }
  window.pocketPerfectCelebrate=celebrationSound;
  function musicTick(){
