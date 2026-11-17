@@ -162,11 +162,12 @@ loadSave();refreshHeader();renderLevel();renderRoom();
   if(el("achievementLine"))el("achievementLine").textContent="Achievements: "+(meta.badges.length?meta.badges.join(" · "):"first clear, 5 clears and room restoration");
   if(el("soundToggle")){el("soundToggle").textContent=soundOn?"♫ Sound: On":"♫ Sound: Off";el("soundToggle").setAttribute("aria-pressed",String(soundOn));}
  }
- let audioCtx=null,musicOn=localStorage.getItem("pp_music")==="on",musicTimer=null,musicStep=0;
- const melody=[659.25,783.99,987.77,783.99,587.33,698.46,880,698.46,523.25,659.25,783.99,659.25,587.33,698.46,880,1046.5];
+ let audioCtx=null,musicBus=null,musicOn=localStorage.getItem("pp_music")==="on",musicTimer=null,musicStep=0,musicVolume=Number(localStorage.getItem("pp_music_volume")||"0.65");
+ const melody=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,523.25,659.25,783.99,987.77,880,783.99,659.25,587.33,523.25,659.25,783.99,659.25,440,587.33,698.46,587.33,493.88,587.33,659.25,783.99,698.46,659.25,587.33,523.25];
+ const chords=[[261.63,329.63,392.00],[196.00,246.94,293.66],[220.00,261.63,329.63],[174.61,220.00,261.63]];
  function audio(){
   const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
-  if(!audioCtx)audioCtx=new C();
+  if(!audioCtx){audioCtx=new C();musicBus=audioCtx.createGain();musicBus.gain.value=musicVolume;musicBus.connect(audioCtx.destination);}
   if(audioCtx.state==="suspended")audioCtx.resume();
   return audioCtx;
  }
@@ -178,16 +179,39 @@ loadSave();refreshHeader();renderLevel();renderRoom();
   g.gain.exponentialRampToValueAtTime(.0001,now+duration);
   o.connect(g);g.connect(c.destination);o.start(now);o.stop(now+duration+.03);
  }
+ function pluck(freq,when,velocity){
+  const c=audio();if(!c)return;
+  [[1,1,.20],[2,0.24,.12],[3,0.08,.075]].forEach(([partial,level,decay])=>{
+   const o=c.createOscillator(),g=c.createGain(),filter=c.createBiquadFilter();
+   o.type="sine";o.frequency.setValueAtTime(freq*partial,when);
+   filter.type="lowpass";filter.frequency.setValueAtTime(4200,when);filter.frequency.exponentialRampToValueAtTime(1100,when+decay);
+   g.gain.setValueAtTime(.0001,when);g.gain.exponentialRampToValueAtTime(Math.max(.0002,level*velocity),when+.008);
+   g.gain.exponentialRampToValueAtTime(.0001,when+decay);
+   o.connect(filter);filter.connect(g);g.connect(musicBus);o.start(when);o.stop(when+decay+.025);
+  });
+ }
+ function pad(chord,when){
+  const c=audio();if(!c)return;
+  chord.forEach((freq,i)=>{
+   const o=c.createOscillator(),g=c.createGain(),filter=c.createBiquadFilter();
+   o.type="triangle";o.frequency.setValueAtTime(freq,when);
+   filter.type="lowpass";filter.frequency.value=950;
+   g.gain.setValueAtTime(.0001,when);g.gain.linearRampToValueAtTime(.012,when+.38);
+   g.gain.setValueAtTime(.012,when+1.15);g.gain.exponentialRampToValueAtTime(.0001,when+1.9);
+   o.connect(filter);filter.connect(g);g.connect(musicBus);o.start(when);o.stop(when+1.95);
+  });
+ }
  function tone(freq,duration){
   if(!soundOn)return;
   playNote(freq,duration,.045,"sine");
  }
  function musicTick(){
   if(!musicOn)return;
-  const n=melody[musicStep%melody.length];
-  playNote(n,.34,.012,"triangle");
-  if(musicStep%4===0)playNote(n/2,.72,.008,"sine");
-  musicStep++;musicTimer=setTimeout(musicTick,420);
+  const c=audio(),now=c.currentTime,n=melody[musicStep%melody.length];
+  if(musicStep%8===0)pad(chords[Math.floor(musicStep/8)%chords.length],now);
+  pluck(n,now,.055);
+  if(musicStep%4===0)pluck(melody[(musicStep+8)%melody.length]/2,now,.035);
+  musicStep++;musicTimer=setTimeout(musicTick,500);
  }
  function startMusic(){if(musicTimer)clearTimeout(musicTimer);musicOn=true;musicStep=0;musicTick();}
  function stopMusic(){musicOn=false;if(musicTimer)clearTimeout(musicTimer);musicTimer=null;}
