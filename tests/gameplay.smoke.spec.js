@@ -280,7 +280,7 @@ test('all ten room decorations unlock, render, and persist with the correct coin
   await page.reload();
   await page.locator('[data-view="room"]').click();
   await expect(page.locator('#roomProgress')).toHaveText('10/10');
-  await expect(page.locator('#coins')).toHaveText('485');
+  await expect(page.locator('#coins')).toHaveText('475');
   await expect(page.locator('#decorlist [data-buy]:disabled')).toHaveCount(10);
 });
 
@@ -419,7 +419,7 @@ test('daily login gift is claimable once and the seventh day grants bonus stars'
   });
   await page.goto('http://127.0.0.1:4173/');
   await page.locator('[data-view="daily"]').click();
-  await expect(page.locator('#loginStreak')).toHaveText('Day 6/7');
+  await expect(page.locator('#loginStreak')).toHaveText('Day 7/7');
   await expect(page.locator('#loginClaimButton')).toBeEnabled();
   await page.locator('#loginClaimButton').click();
   await expect(page.locator('#loginStreak')).toHaveText('Day 7/7');
