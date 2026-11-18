@@ -27,9 +27,10 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('market-makers/index.html', 'utf8');
-          const match = html.match(/<script>([\\s\\S]*?)<\\/script>/i);
-          if (!match) throw new Error('Game script not found');
-          new Function(match[1]);
+          const start = html.indexOf('<script>');
+          const end = html.indexOf('</script>', start);
+          if (start < 0 || end < 0) throw new Error('Game script not found');
+          new Function(html.slice(start + 8, end));
           for (const id of ['cash','rep','served','orders','stock','upgrades','endDay']) {
             if (!html.includes('id="' + id + '"')) throw new Error('Missing UI element: ' + id);
           }
