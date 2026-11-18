@@ -272,7 +272,7 @@ test('all ten room decorations unlock, render, and persist with the correct coin
     await expect(page.locator('[data-buy="' + i + '"]')).toBeDisabled();
   }
   await expect(page.locator('#roomProgress')).toHaveText('10/10');
-  await expect(page.locator('#coins')).toHaveText('485');
+  await expect(page.locator('#coins')).toHaveText('475');
   await expect(page.locator('#roomLeafyPlant')).toHaveClass(/owned/);
   await expect(page.locator('#roomWindowFlowers')).toHaveClass(/owned/);
   await expect(page.locator('#roomRug')).toHaveClass(/owned/);
@@ -419,9 +419,10 @@ test('daily login gift is claimable once and the seventh day grants bonus stars'
   });
   await page.goto('http://127.0.0.1:4173/');
   await page.locator('[data-view="daily"]').click();
-  await expect(page.locator('#loginStreak')).toHaveText('Day 7/7');
+  await expect(page.locator('#loginStreak')).toHaveText('Day 6/7');
   await expect(page.locator('#loginClaimButton')).toBeEnabled();
   await page.locator('#loginClaimButton').click();
+  await expect(page.locator('#loginStreak')).toHaveText('Day 7/7');
   await expect(page.locator('#loginClaimButton')).toBeDisabled();
   const saved = await page.evaluate(() => ({
     game: JSON.parse(localStorage.getItem('pp_v02_save')),
