@@ -321,12 +321,13 @@ function closeTutorial(){
  $("tutorialOverlay").classList.remove("show");
 }
 function startTutorial(){
- if(state.tutorialCompleted)return;
+ if(!isFirstTimePlayer||state.tutorialCompleted)return;
  tutorialStep=0;renderTutorialStep();$("tutorialOverlay").classList.add("show");
 }
 $("tutorialNext").onclick=()=>{if(tutorialStep<tutorialSteps.length-1){tutorialStep++;renderTutorialStep();}else closeTutorial();};
 $("tutorialSkip").onclick=closeTutorial;
 
+const isFirstTimePlayer=!localStorage.getItem("pp_v02_save");
 loadSave();if(!Array.isArray(state.profileTrophiesSeen))state.profileTrophiesSeen=profileTrophyData().filter(t=>t.ok).map(t=>t.id);save();refreshHeader();renderLevel();renderRoom();startTutorial();
 </script>  <script>
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
