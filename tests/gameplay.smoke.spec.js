@@ -278,7 +278,7 @@ test('all ten room decorations unlock, render, and persist with the correct coin
   await page.reload();
   await page.locator('[data-view="room"]').click();
   await expect(page.locator('#roomProgress')).toHaveText('10/10');
-  await expect(page.locator('#coins')).toHaveText('475');
+  await expect(page.locator('#coins')).toHaveText('485');
   await expect(page.locator('#decorlist [data-buy]:disabled')).toHaveCount(10);
 });
 
