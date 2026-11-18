@@ -408,7 +408,7 @@ test('returning players with an existing save are not interrupted by onboarding'
 });
 
 
-test('daily login gift is claimable once and the seventh day grants bonus stars', async ({ page }) => {
+test('daily login gift is claimable once and the seventh day grants bonus stars', async ({ page }) => { 
   await page.addInitScript(() => {
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 100, totalStars: 2 }));
