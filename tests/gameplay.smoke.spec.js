@@ -260,7 +260,7 @@ test('all navigation sections open and the prototype shop stays safely disabled'
 
 test('all ten room decorations unlock, render, and persist with the correct coin balance', async ({ page }) => {
   await page.addInitScript(() => {
-    localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 1000 }));
+    if (!localStorage.getItem('pp_v02_save')) localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 1000 }));
   });
   await page.goto('http://127.0.0.1:4173/');
   await page.locator('[data-view="room"]').click();
