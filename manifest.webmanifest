@@ -1,6 +1,6 @@
 {
-  "name": "Pocket Perfect: Sort & Restore",
-  "short_name": "Pocket Perfect",
+  "name": "Sortaloom: Sort & Restore",
+  "short_name": "Sortaloom",
   "description": "Sort puzzles and restore a cozy room.",
   "start_url": "./",
   "scope": "./",
