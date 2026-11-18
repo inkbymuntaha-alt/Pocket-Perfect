@@ -1,0 +1,17 @@
+{
+  "name": "sortaloom-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Android wrapper build for Sortaloom: Sort & Restore",
+  "scripts": {
+    "build:web": "mkdir -p www && cp index.html manifest.webmanifest sw.js icon.svg www/",
+    "android:sync": "npm run build:web && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/core": "^8.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0"
+  }
+}
