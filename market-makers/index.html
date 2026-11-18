@@ -102,7 +102,7 @@ function render(){
   const row=document.createElement('div');row.className='upgrade';const info=document.createElement('div');const b=document.createElement('b');b.textContent=u.name;const sm=document.createElement('small');sm.textContent=state.upgrades.includes(u.id)?'Already installed':u.desc+' · '+money(u.cost)+' · '+u.rep+' reputation';info.append(b,sm);
   const btn=document.createElement('button');btn.className='tiny';btn.textContent=state.upgrades.includes(u.id)?'Owned':'Buy';btn.disabled=state.closed||state.upgrades.includes(u.id)||state.cash<u.cost||state.rep<u.rep;btn.addEventListener('click',()=>buyUpgrade(u.id));row.append(info,btn);$('upgrades').appendChild(row);
  });
- $('endDay').disabled=state.closed;$('newCustomer').disabled=state.closed||state.orders.length>=3;
+ $('endDay').disabled=false;$('endDay').textContent=state.closed?'Open next day →':'Close the day →';$('newCustomer').disabled=state.closed||state.orders.length>=3;
 }
 function buyStock(id){const p=product(id),cost=p.cost*3;if(state.cash<cost)return;say('You bought 3 '+p.name.toLowerCase()+'. Keep an eye on your cash.');state.cash-=cost;state.stock[id]+=3;save();render();}
 function changePrice(id){const p=product(id),choices=[p.price-3,p.price,p.price+4];let current=state.prices[id],next=choices[(choices.indexOf(current)+1)%choices.length];if(!choices.includes(current))next=choices[1];state.prices[id]=Math.max(p.cost+1,next);say(p.name+' price is now '+money(state.prices[id])+'. Fair prices help your reputation.');save();render();}
