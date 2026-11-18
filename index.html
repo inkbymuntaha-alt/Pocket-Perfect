@@ -47,6 +47,9 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 .spin-wheel:before{content:"";position:absolute;inset:8px;border-radius:50%;border:1px solid #ffffffd9;box-shadow:inset 0 0 0 2px #ffffff55;pointer-events:none}
 .spin-label{width:38px;height:25px;display:grid;place-items:center;border-radius:99px;background:#fffdf0e8;border:1px solid #fff;box-shadow:0 2px 5px #59466b30;color:#54436c;font-size:11px;font-weight:1000;text-shadow:none}
 .spin-wheel-center{width:59px;height:59px;border:5px solid #fff4cf;background:radial-gradient(circle at 35% 28%,#fff 0%,#fff7dc 46%,#e8d5ff 100%);color:#a276ba;font-size:27px;box-shadow:0 0 0 3px #d4b76d,0 4px 10px #3b315044,inset 0 2px 5px #fff}
+/* Keep the entire spinning wheel completely shadow-free in every state. */
+.daily-spin-card,.daily-spin-card *{box-shadow:none!important;text-shadow:none!important;filter:none!important;}
+.daily-spin-card .spin-wheel{outline:none!important;}
 .spin-prize-list{max-width:290px;margin:14px auto 2px;padding:8px 10px;border-radius:12px;background:#ffffffb8;border:1px solid #ece4f4;color:#716487;font-weight:750;line-height:1.8}
 #spinButton{border-radius:15px;background:linear-gradient(110deg,#8065b8,#a47bc9 55%,#c18db8);box-shadow:0 4px 0 #654d98,0 7px 13px #8265a52b;letter-spacing:.6px;font-size:13px}
 #spinButton:not(:disabled):active{transform:translateY(2px);box-shadow:0 2px 0 #654d98}
