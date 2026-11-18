@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test.use({ viewport: { width: 390, height: 844 } });
+test.use({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Kolkata' });
 
 async function openGame(page) {
   page.on('pageerror', error => console.log('[BROWSER PAGE ERROR]', error.stack || error.message));
@@ -110,6 +110,17 @@ test('campaign progress and coin balance survive a page reload', async ({ page }
   await expect(page.locator('[data-level="0"]')).toContainText('Completed');
   await expect(page.locator('[data-level="1"]')).toContainText('Current level');
   await expect(page.locator('[data-level="2"]')).toBeDisabled();
+});
+
+test('mobile viewport remains zoomable and keyboard focus is visible', async ({ page }) => {
+  await openGame(page);
+  const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
+  expect(viewport).toBe('width=device-width,initial-scale=1');
+  const focusStyle = await page.locator('#restart').evaluate(el => getComputedStyle(el).outlineStyle);
+  expect(focusStyle).toBe('none');
+  await page.keyboard.press('Tab');
+  const activeOutline = await page.evaluate(() => getComputedStyle(document.activeElement).outlineStyle);
+  expect(['solid', 'auto']).toContain(activeOutline);
 });
 
 test('mobile layout keeps navigation and gameplay controls visible', async ({ page }) => {
@@ -344,7 +355,7 @@ test('daily spin saves its prize, disables repeat claims, and keeps the wheel sh
     save: JSON.parse(localStorage.getItem('pp_v02_save')),
     meta: JSON.parse(localStorage.getItem('pp_v1_meta'))
   }));
-  expect(after.meta.spinDay).toBe(new Date().toISOString().slice(0, 10));
+  expect(after.meta.spinDay).toBe(await page.evaluate(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }));
   expect(after.meta.spinPrize).toBeTruthy();
   expect(after.save.coins > before.coins || after.save.totalStars > before.totalStars).toBe(true);
   await expect(page.locator('#spinButton')).toBeDisabled();
