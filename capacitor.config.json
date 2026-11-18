@@ -1,0 +1,10 @@
+{
+  "appId": "com.mushagames.sortaloom",
+  "appName": "Sortaloom",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "backgroundColor": "#f1f3f8",
+  "android": {
+    "allowMixedContent": false
+  }
+}
