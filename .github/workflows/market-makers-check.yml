@@ -1,0 +1,50 @@
+name: Market Makers prototype check
+
+on:
+  push:
+    branches:
+      - market-makers-prototype
+    paths:
+      - "market-makers/**"
+      - ".github/workflows/market-makers-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check game source
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('market-makers/index.html', 'utf8');
+          const match = html.match(/<script>([\\s\\S]*?)<\\/script>/i);
+          if (!match) throw new Error('Game script not found');
+          new Function(match[1]);
+          for (const id of ['cash','rep','served','orders','stock','upgrades','endDay']) {
+            if (!html.includes('id="' + id + '"')) throw new Error('Missing UI element: ' + id);
+          }
+          if (!html.includes('marketMakersSave')) throw new Error('Local save system missing');
+          console.log('Game JavaScript syntax and core UI checks passed.');
+          NODE
+      - name: Package browser prototype
+        run: |
+          mkdir -p dist
+          cp market-makers/index.html dist/index.html
+          cp market-makers/README.md dist/README.md
+          cd dist && zip -r ../market-makers-web-prototype.zip .
+      - name: Upload playable prototype
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-makers-web-prototype
+          path: market-makers-web-prototype.zip
+          if-no-files-found: error
