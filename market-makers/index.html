@@ -51,8 +51,8 @@ const products=[
 const upgrades=[
  {id:'sign',name:'Hand-painted sign',desc:'Attracts more visitors.',cost:120,rep:0},
  {id:'shelf',name:'Wide display shelf',desc:'Customers order larger baskets.',cost:260,rep:12},
- {id:'helper',name:'Friendly helper',desc:'Adds a little extra demand each day.',cost:520,rep:30},
- {id:'awning',name:'Colourful market awning',desc:'Makes your stall a local favourite.',cost:900,rep:60}
+ {id:'helper',name:'Friendly helper',desc:'Adds ₹15 to your opening cash each new day.',cost:520,rep:30},
+ {id:'awning',name:'Colourful market awning',desc:'Earns 2 bonus reputation each new day.',cost:900,rep:60}
 ];
 const fresh=()=>({cash:150,rep:0,served:0,day:1,stock:{fruit:5,bread:5,flowers:5},prices:{fruit:15,bread:19,flowers:23},upgrades:[],orders:[],target:80,earned:0,closed:false});
 let state=fresh();
@@ -63,7 +63,7 @@ function load(){try{const raw=localStorage.getItem('marketMakersSave');if(raw){c
 function say(t){$('notice').textContent=t;}
 function product(id){return products.find(p=>p.id===id);}
 function makeOrder(){
- if(state.orders.length>=3){say('You already have three customers waiting. Serve one first!');return;}
+ if(state.orders.length>=(state.upgrades.includes('sign')?4:3)){say('You already have three customers waiting. Serve one first!');return;}
  const p=products[Math.floor(Math.random()*products.length)];
  const qty=1+(Math.random()<(state.upgrades.includes('shelf')?.45:.2)?1:0);
  const moods=['A cheerful neighbour','A busy commuter','A curious visitor','A regular customer'];
@@ -102,18 +102,18 @@ function render(){
   const row=document.createElement('div');row.className='upgrade';const info=document.createElement('div');const b=document.createElement('b');b.textContent=u.name;const sm=document.createElement('small');sm.textContent=state.upgrades.includes(u.id)?'Already installed':u.desc+' · '+money(u.cost)+' · '+u.rep+' reputation';info.append(b,sm);
   const btn=document.createElement('button');btn.className='tiny';btn.textContent=state.upgrades.includes(u.id)?'Owned':'Buy';btn.disabled=state.closed||state.upgrades.includes(u.id)||state.cash<u.cost||state.rep<u.rep;btn.addEventListener('click',()=>buyUpgrade(u.id));row.append(info,btn);$('upgrades').appendChild(row);
  });
- $('endDay').disabled=false;$('endDay').textContent=state.closed?'Open next day →':'Close the day →';$('newCustomer').disabled=state.closed||state.orders.length>=3;
+ $('endDay').disabled=false;$('endDay').textContent=state.closed?'Open next day →':'Close the day →';$('newCustomer').disabled=state.closed||state.orders.length>=(state.upgrades.includes('sign')?4:3);
 }
 function buyStock(id){const p=product(id),cost=p.cost*3;if(state.cash<cost)return;say('You bought 3 '+p.name.toLowerCase()+'. Keep an eye on your cash.');state.cash-=cost;state.stock[id]+=3;save();render();}
 function changePrice(id){const p=product(id),choices=[p.price-3,p.price,p.price+4];let current=state.prices[id],next=choices[(choices.indexOf(current)+1)%choices.length];if(!choices.includes(current))next=choices[1];state.prices[id]=Math.max(p.cost+1,next);say(p.name+' price is now '+money(state.prices[id])+'. Fair prices help your reputation.');save();render();}
 function serve(id){const i=state.orders.findIndex(o=>o.id===id);if(i<0)return;const o=state.orders[i],p=product(o.product);if(state.stock[o.product]<o.qty){say('Not enough stock. Buy more supplies first.');return;}
  const unit=state.prices[o.product],base=p.price;let total=unit*o.qty;state.stock[o.product]-=o.qty;state.cash+=total;state.earned+=total;state.served++;
  const fair=unit<=base+2;state.rep+=fair?2:1;if(unit>base+4){state.rep=Math.max(0,state.rep-1);say('Customer paid, but the price felt too high. Try a fairer price next time.');}else say('Order complete! You earned '+money(total)+' and gained reputation.');
- state.orders.splice(i,1);if(state.orders.length<2&&!state.closed)makeOrder();save();render();
+ state.orders.splice(i,1);if(state.orders.length<(state.upgrades.includes('sign')?4:3)&&!state.closed)makeOrder();save();render();
 }
 function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||state.upgrades.includes(id)||state.cash<u.cost||state.rep<u.rep)return;state.cash-=u.cost;state.upgrades.push(id);say(u.name+' installed! Your market is growing.');save();render();}
 function closeDay(){if(state.closed)return;state.closed=true;const bonus=state.earned>=state.target?35:Math.floor(state.earned/10);state.cash+=bonus;state.rep+=state.earned>=state.target?3:1;say('Day '+state.day+' closed. Your market bonus: '+money(bonus)+'. Reputation increased.');save();render();}
-function nextDay(){state.day++;state.closed=false;state.earned=0;state.target=80+state.day*22+(state.upgrades.includes('awning')?30:0);if(state.upgrades.includes('helper'))state.cash+=15;state.orders=[];for(let i=0;i<2;i++)makeOrder();say('A new market day begins. Your target is '+money(state.target)+'.');save();render();}
+function nextDay(){state.day++;state.closed=false;state.earned=0;state.target=80+state.day*22;if(state.upgrades.includes('helper'))state.cash+=15;if(state.upgrades.includes('awning'))state.rep+=2;state.orders=[];for(let i=0;i<2;i++)makeOrder();say('A new market day begins. Your target is '+money(state.target)+'.');save();render();}
 $('newCustomer').addEventListener('click',makeOrder);$('endDay').addEventListener('click',()=>{if(!state.closed){closeDay();$('endDay').textContent='Open next day →';}else nextDay();});
 $('saveBtn').addEventListener('click',()=>{save();say('Game saved on this device.');});
 $('resetBtn').addEventListener('click',()=>{if(confirm('Start a new market and erase this device’s saved progress?')){state=fresh();state.orders=[];for(let i=0;i<2;i++)makeOrder();save();say('A fresh market is ready.');render();}});
