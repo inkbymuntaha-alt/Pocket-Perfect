@@ -174,3 +174,20 @@ test('completing level 500 shows the final campaign celebration', async ({ page 
   await expect(page.locator('.levelup-card')).toContainText('ALL LEVELS COMPLETE!');
   await expect(page.locator('.levelup-card')).toContainText('500 LEVELS MASTERED');
 });
+
+test('every 100th campaign level triggers a special milestone celebration', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 99,
+      completed: Array.from({ length: 99 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#levelname')).toContainText('Level 100');
+  await solveCurrentPuzzle(page);
+  await expect(page.locator('.levelup-card')).toContainText('100 LEVELS CLEARED!');
+  await expect(page.locator('.levelup-card')).toContainText('MILESTONE MASTER');
+});
+
