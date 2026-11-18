@@ -62,7 +62,7 @@ const upgrades=[
 ];
 const events=[{name:'Harvest Festival',desc:'Fruit orders earn an extra ₹3 each.',kind:'fruit',bonus:3},{name:'Fresh Bread Morning',desc:'Bread orders earn an extra ₹4 each.',kind:'bread',bonus:4},{name:'Flower Fair',desc:'Flower orders earn an extra ₹4 each.',kind:'flowers',bonus:4},{name:'Kind Neighbours Day',desc:'Every fair sale earns 1 extra reputation.',kind:'kindness',bonus:1}];
 const pickEvent=()=>events[Math.floor(Math.random()*events.length)];
-const fresh=()=>({cash:150,rep:0,served:0,day:1,stock:{fruit:5,bread:5,flowers:5,veggies:5,honey:5,jam:5},prices:{fruit:15,bread:19,flowers:23},upgrades:[],orders:[],target:80,earned:0,closed:false,event:pickEvent(),celebratedMilestones:[]});
+const fresh=()=>({cash:150,rep:0,served:0,day:1,stock:{fruit:5,bread:5,flowers:5,veggies:5,honey:5,jam:5},prices:{fruit:15,bread:19,flowers:23,veggies:17,honey:29,jam:25},upgrades:[],orders:[],target:80,earned:0,closed:false,event:pickEvent(),celebratedMilestones:[]});
 let state=fresh();
 const $=id=>document.getElementById(id);
 const money=n=>'₹'+Math.floor(n).toLocaleString('en-IN');
@@ -71,7 +71,7 @@ function load(){try{const raw=localStorage.getItem('marketMakersSave');if(raw){c
 function say(t){$('notice').textContent=t;}
 function product(id){return products.find(p=>p.id===id);}
 function makeOrder(){
- const limit=state.upgrades.includes('cart')?6:state.upgrades.includes('cart')?6:state.upgrades.includes('sign')?4:3;
+ const limit=state.upgrades.includes('cart')?6:state.upgrades.includes('sign')?4:3;
  if(state.orders.length>=limit){say('Your customer queue is full. Serve a basket first!');return;}
  const p=products[Math.floor(Math.random()*products.length)];
  const qty=1+(Math.random()<(state.upgrades.includes('shelf')?.45:.2)?1:0);
@@ -112,7 +112,7 @@ function render(){
   const row=document.createElement('div');row.className='upgrade';const info=document.createElement('div');const b=document.createElement('b');b.textContent=u.name;const sm=document.createElement('small');sm.textContent=state.upgrades.includes(u.id)?'Already installed':u.desc+' · '+money(u.cost)+' · '+u.rep+' reputation';info.append(b,sm);
   const btn=document.createElement('button');btn.className='tiny';btn.textContent=state.upgrades.includes(u.id)?'Owned':'Buy';btn.disabled=state.closed||state.upgrades.includes(u.id)||state.cash<u.cost||state.rep<u.rep;btn.addEventListener('click',()=>buyUpgrade(u.id));row.append(info,btn);$('upgrades').appendChild(row);
  });
- $('endDay').disabled=false;$('endDay').textContent=state.closed?'Open next day →':'Close the day →';$('newCustomer').disabled=state.closed||state.orders.length>=(state.upgrades.includes('sign')?4:3);
+ $('endDay').disabled=false;$('endDay').textContent=state.closed?'Open next day →':'Close the day →';$('newCustomer').disabled=state.closed||state.orders.length>=(state.upgrades.includes('cart')?6:state.upgrades.includes('sign')?4:3);
 }
 function buyStock(id){const p=product(id),cost=p.cost*3;if(state.cash<cost)return;say('You bought 3 '+p.name.toLowerCase()+'. Keep an eye on your cash.');state.cash-=cost;state.stock[id]+=3;save();render();}
 function changePrice(id){const p=product(id),choices=[p.price-3,p.price,p.price+4];let current=state.prices[id],next=choices[(choices.indexOf(current)+1)%choices.length];if(!choices.includes(current))next=choices[1];state.prices[id]=Math.max(p.cost+1,next);say(p.name+' price is now '+money(state.prices[id])+'. Fair prices help your reputation.');save();render();}
