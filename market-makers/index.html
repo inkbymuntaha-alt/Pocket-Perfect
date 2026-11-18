@@ -46,17 +46,23 @@ button{font:inherit;cursor:pointer;border:0}button:focus-visible{outline:3px sol
 const products=[
  {id:'fruit',name:'Sunrise fruit',icon:'🍊',cost:8,price:15},
  {id:'bread',name:'Warm bread',icon:'🥖',cost:10,price:19},
- {id:'flowers',name:'Wildflower bunch',icon:'💐',cost:12,price:23}
+ {id:'flowers',name:'Wildflower bunch',icon:'💐',cost:12,price:23},
+ {id:'veggies',name:'Garden vegetables',icon:'🥕',cost:9,price:17},
+ {id:'honey',name:'Golden honey',icon:'🍯',cost:16,price:29},
+ {id:'jam',name:'Homemade jam',icon:'🍓',cost:13,price:25}
 ];
 const upgrades=[
  {id:'sign',name:'Hand-painted sign',desc:'Attracts more visitors.',cost:120,rep:0},
  {id:'shelf',name:'Wide display shelf',desc:'Customers order larger baskets.',cost:260,rep:12},
  {id:'helper',name:'Friendly helper',desc:'Adds ₹15 to your opening cash each new day.',cost:520,rep:30},
- {id:'awning',name:'Colourful market awning',desc:'Earns 2 bonus reputation each new day.',cost:900,rep:60}
+ {id:'awning',name:'Colourful market awning',desc:'Earns 2 bonus reputation each new day.',cost:900,rep:60},
+ {id:'cart',name:'Delivery handcart',desc:'Unlocks a bigger queue and helps you serve more baskets.',cost:1250,rep:90},
+ {id:'secondstall',name:'Second market stall',desc:'Expand your market and earn a 10% daily sales bonus.',cost:2400,rep:150},
+ {id:'marketroof',name:'Grand market roof',desc:'A major market upgrade for your growing neighbourhood business.',cost:4200,rep:250}
 ];
 const events=[{name:'Harvest Festival',desc:'Fruit orders earn an extra ₹3 each.',kind:'fruit',bonus:3},{name:'Fresh Bread Morning',desc:'Bread orders earn an extra ₹4 each.',kind:'bread',bonus:4},{name:'Flower Fair',desc:'Flower orders earn an extra ₹4 each.',kind:'flowers',bonus:4},{name:'Kind Neighbours Day',desc:'Every fair sale earns 1 extra reputation.',kind:'kindness',bonus:1}];
 const pickEvent=()=>events[Math.floor(Math.random()*events.length)];
-const fresh=()=>({cash:150,rep:0,served:0,day:1,stock:{fruit:5,bread:5,flowers:5},prices:{fruit:15,bread:19,flowers:23},upgrades:[],orders:[],target:80,earned:0,closed:false,event:pickEvent()});
+const fresh=()=>({cash:150,rep:0,served:0,day:1,stock:{fruit:5,bread:5,flowers:5,veggies:5,honey:5,jam:5},prices:{fruit:15,bread:19,flowers:23},upgrades:[],orders:[],target:80,earned:0,closed:false,event:pickEvent(),celebratedMilestones:[]});
 let state=fresh();
 const $=id=>document.getElementById(id);
 const money=n=>'₹'+Math.floor(n).toLocaleString('en-IN');
@@ -65,11 +71,13 @@ function load(){try{const raw=localStorage.getItem('marketMakersSave');if(raw){c
 function say(t){$('notice').textContent=t;}
 function product(id){return products.find(p=>p.id===id);}
 function makeOrder(){
- if(state.orders.length>=(state.upgrades.includes('sign')?4:3)){say('You already have three customers waiting. Serve one first!');return;}
+ const limit=state.upgrades.includes('cart')?6:state.upgrades.includes('cart')?6:state.upgrades.includes('sign')?4:3;
+ if(state.orders.length>=limit){say('Your customer queue is full. Serve a basket first!');return;}
  const p=products[Math.floor(Math.random()*products.length)];
  const qty=1+(Math.random()<(state.upgrades.includes('shelf')?.45:.2)?1:0);
- const moods=['Mira the student','Dev the office commuter','Asha the home cook','Kabir the café owner','Nina the flower fan','A friendly neighbour'];
- state.orders.push({id:Date.now()+Math.random(),product:p.id,qty:qty,customer:moods[Math.floor(Math.random()*moods.length)]});
+ const items=[{product:p.id,qty}];if(Math.random()<.32){const other=products[Math.floor(Math.random()*products.length)];if(other.id!==p.id)items.push({product:other.id,qty:1});}
+ const moods=['Mira the student','Dev the office commuter','Asha the home cook','Kabir the café owner','Nina the flower fan','A friendly neighbour','Rohan the picnic planner','Leela the home baker'];
+ state.orders.push({id:Date.now()+Math.random(),items,customer:moods[Math.floor(Math.random()*moods.length)]});
  render();
 }
 function render(){
@@ -82,12 +90,12 @@ function render(){
  $('orders').innerHTML='';
  if(!state.orders.length){const e=document.createElement('div');e.className='sub';e.textContent='No customers waiting. Tap “Find customer” to invite someone in.';$('orders').appendChild(e);}
  state.orders.forEach(o=>{
-  const p=product(o.product),el=document.createElement('div');el.className='order';
+  const lines=o.items||[{product:o.product,qty:o.qty}],el=document.createElement('div');el.className='order';
   const top=document.createElement('div');top.className='order-top';
   const title=document.createElement('strong');title.textContent=o.customer;
-  const pill=document.createElement('span');pill.className='pill';pill.textContent=p.icon+' '+p.name+' × '+o.qty;
-  top.append(title,pill);const desc=document.createElement('p');desc.textContent='Offer price: '+money(state.prices[p.id])+' each · Reward: '+money(state.prices[p.id]*o.qty);
-  const btn=document.createElement('button');btn.className='btn';btn.textContent='Serve customer';btn.disabled=state.closed||state.stock[p.id]<o.qty;btn.addEventListener('click',()=>serve(o.id));el.append(top,desc,btn);$('orders').appendChild(el);
+  const pill=document.createElement('span');pill.className='pill';pill.textContent=lines.map(x=>product(x.product).icon+' ×'+(x.qty||1)).join(' + ');
+  top.append(title,pill);const desc=document.createElement('p');desc.textContent='Basket: '+lines.map(x=>product(x.product).name+' × '+(x.qty||1)).join(', ');
+  const btn=document.createElement('button');btn.className='btn';btn.textContent='Serve basket';btn.disabled=state.closed||lines.some(x=>state.stock[x.product]<(x.qty||1));btn.addEventListener('click',()=>serve(o.id));el.append(top,desc,btn);$('orders').appendChild(el);
  });
  $('stock').innerHTML='';
  products.forEach(p=>{
@@ -109,12 +117,14 @@ function render(){
 function buyStock(id){const p=product(id),cost=p.cost*3;if(state.cash<cost)return;say('You bought 3 '+p.name.toLowerCase()+'. Keep an eye on your cash.');state.cash-=cost;state.stock[id]+=3;save();render();}
 function changePrice(id){const p=product(id),choices=[p.price-3,p.price,p.price+4];let current=state.prices[id],next=choices[(choices.indexOf(current)+1)%choices.length];if(!choices.includes(current))next=choices[1];state.prices[id]=Math.max(p.cost+1,next);say(p.name+' price is now '+money(state.prices[id])+'. Fair prices help your reputation.');save();render();}
 function serve(id){const i=state.orders.findIndex(o=>o.id===id);if(i<0)return;const o=state.orders[i],p=product(o.product);if(state.stock[o.product]<o.qty){say('Not enough stock. Buy more supplies first.');return;}
- const unit=state.prices[o.product],base=p.price;const eventExtra=state.event&&state.event.kind===o.product?state.event.bonus*o.qty:0;let total=unit*o.qty+eventExtra;state.stock[o.product]-=o.qty;state.cash+=total;state.earned+=total;state.served++;
- const fair=unit<=base+2;state.rep+=fair?2:1;if(state.event&&state.event.kind==='kindness'&&fair)state.rep+=state.event.bonus;if(unit>base+4){state.rep=Math.max(0,state.rep-1);say('Customer paid, but the price felt too high. Try a fairer price next time.');}else say('Order complete! You earned '+money(total)+' and gained reputation.');
+ const lines=o.items||[{product:o.product,qty:o.qty}],totalBase=lines.reduce((sum,x)=>sum+state.prices[x.product]*(x.qty||1),0);let total=totalBase,fair=true;
+ for(const line of lines){const item=product(line.product),q=line.qty||1,unit=state.prices[line.product];state.stock[line.product]-=q;if(unit>item.price+2)fair=false;if(unit>item.price+4)state.rep=Math.max(0,state.rep-1);if(state.event&&state.event.kind===line.product)total+=state.event.bonus*q;}
+ state.cash+=total;state.earned+=total;state.served++;state.rep+=fair?2:1;if(state.event&&state.event.kind==='kindness'&&fair)state.rep+=state.event.bonus;
+ const milestones=[10,25,50,100,250,500],hit=milestones.find(n=>state.served>=n&&!(state.celebratedMilestones||[]).includes(n));if(hit){state.celebratedMilestones=state.celebratedMilestones||[];state.celebratedMilestones.push(hit);say(hit===500?'🏆 INCREDIBLE! 500 CUSTOMERS SERVED! Your market is a neighbourhood legend!':'🎉 Milestone reached: '+hit+' customers served! Your market is growing!');}else if(!fair)say('Basket sold, but some prices felt high. Try fairer prices next time.');else say('Basket complete! You earned '+money(total)+' and gained reputation.');
  state.orders.splice(i,1);if(state.orders.length<(state.upgrades.includes('sign')?4:3)&&!state.closed)makeOrder();save();render();
 }
 function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||state.upgrades.includes(id)||state.cash<u.cost||state.rep<u.rep)return;state.cash-=u.cost;state.upgrades.push(id);say(u.name+' installed! Your market is growing.');save();render();}
-function closeDay(){if(state.closed)return;state.closed=true;const bonus=state.earned>=state.target?35:Math.floor(state.earned/10);state.cash+=bonus;state.rep+=state.earned>=state.target?3:1;say('Day '+state.day+' closed. Your market bonus: '+money(bonus)+'. Reputation increased.');save();render();}
+function closeDay(){if(state.closed)return;state.closed=true;const bonus=state.earned>=state.target?35:Math.floor(state.earned/10);state.cash+=bonus;if(state.upgrades.includes('secondstall'))state.cash+=Math.floor(state.earned*.10);state.rep+=state.earned>=state.target?3:1;say('Day '+state.day+' closed. Your market bonus: '+money(bonus)+(state.upgrades.includes('secondstall')?' plus second-stall bonus!':'')+'. Reputation increased.');save();render();}
 function nextDay(){state.day++;state.closed=false;state.earned=0;state.target=80+state.day*22;if(state.upgrades.includes('helper'))state.cash+=15;if(state.upgrades.includes('awning'))state.rep+=2;state.orders=[];state.event=pickEvent();for(let i=0;i<2;i++)makeOrder();say('A new market day begins: '+state.event.name+'! '+state.event.desc+' Target: '+money(state.target)+'.');save();render();}
 $('newCustomer').addEventListener('click',makeOrder);$('endDay').addEventListener('click',()=>{if(!state.closed){closeDay();$('endDay').textContent='Open next day →';}else nextDay();});
 $('saveBtn').addEventListener('click',()=>{save();say('Game saved on this device.');});
