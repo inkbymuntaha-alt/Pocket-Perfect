@@ -384,7 +384,7 @@ test('first-time players get a four-step tutorial that can be skipped and stays 
   await page.goto('http://127.0.0.1:4173/');
   const overlay = page.locator('#tutorialOverlay');
   await expect(overlay).toHaveClass(/show/);
-  await expect(page.locator('#tutorialTitle')).toHaveText('Welcome to Pocket Perfect!');
+  await expect(page.locator('#tutorialTitle')).toHaveText('Welcome to Sortaloom!');
   await page.locator('#tutorialNext').click();
   await expect(page.locator('#tutorialTitle')).toHaveText('Sort each little object');
   await page.locator('#tutorialNext').click();
