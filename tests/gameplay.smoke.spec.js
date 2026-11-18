@@ -378,3 +378,31 @@ test('room upgrade button blocks purchases when the coin balance is too low', as
   await expect(page.locator('#roomStageTitle')).toHaveText('Cozy Starter Room');
   await expect(page.locator('#roomScene')).toHaveAttribute('data-upgrade', '0');
 });
+
+
+test('first-time players get a four-step tutorial that can be skipped and stays dismissed', async ({ page }) => {
+  await page.goto('http://127.0.0.1:4173/');
+  const overlay = page.locator('#tutorialOverlay');
+  await expect(overlay).toHaveClass(/show/);
+  await expect(page.locator('#tutorialTitle')).toHaveText('Welcome to Pocket Perfect!');
+  await page.locator('#tutorialNext').click();
+  await expect(page.locator('#tutorialTitle')).toHaveText('Sort each little object');
+  await page.locator('#tutorialNext').click();
+  await expect(page.locator('#tutorialTitle')).toHaveText('Earn coins and stars');
+  await page.locator('#tutorialNext').click();
+  await expect(page.locator('#tutorialTitle')).toHaveText('Restore your cozy room');
+  await page.locator('#tutorialSkip').click();
+  await expect(overlay).not.toHaveClass(/show/);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.tutorialCompleted).toBe(true);
+  await page.reload();
+  await expect(overlay).not.toHaveClass(/show/);
+});
+
+test('returning players with an existing save are not interrupted by onboarding', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 25, level: 0 })));
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/show/);
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.level).toBe(0);
+});
