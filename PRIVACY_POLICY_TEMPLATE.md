@@ -1,8 +1,8 @@
-# Privacy Policy — Pocket Perfect
+# Privacy Policy — Sortaloom
 
 **Important:** This is a template, not a publish-ready legal policy. Review and replace every placeholder, and make sure it accurately describes the final app and every SDK/service included before publishing.
 
-- App name: Pocket Perfect
+- App name: Sortaloom
 - Developer/legal entity: [YOUR LEGAL NAME OR BUSINESS]
 - Contact email: [YOUR SUPPORT EMAIL]
 - Effective date: [DATE]
