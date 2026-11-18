@@ -194,6 +194,21 @@ test('every 100th campaign level triggers a special milestone celebration', asyn
 });
 
 
+test('level 201 does not trigger a milestone celebration', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 200,
+      completed: Array.from({ length: 200 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#levelname')).toContainText('Level 201');
+  await solveCurrentPuzzle(page);
+  await expect(page.locator('.levelup-celebration')).toHaveCount(0);
+});
+
 test('daily spin wheel has the polished pastel prize-wheel styling', async ({ page }) => {
   await openGame(page);
   await page.locator('[data-view="daily"]').click();
