@@ -67,7 +67,7 @@ let state=fresh();
 const $=id=>document.getElementById(id);
 const money=n=>'₹'+Math.floor(n).toLocaleString('en-IN');
 function save(){try{localStorage.setItem('marketMakersSave',JSON.stringify(state));}catch(e){}}
-function load(){try{const raw=localStorage.getItem('marketMakersSave');if(raw){const s=JSON.parse(raw);if(s&&s.stock&&typeof s.cash==='number')state=Object.assign(fresh(),s);}}catch(e){}}
+function load(){try{const raw=localStorage.getItem('marketMakersSave');if(raw){const s=JSON.parse(raw);if(s&&s.stock&&typeof s.cash==='number'){state=Object.assign(fresh(),s);state.stock=Object.assign(fresh().stock,s.stock);state.prices=Object.assign(fresh().prices,s.prices||{});state.celebratedMilestones=state.celebratedMilestones||[];}}}catch(e){}}
 function say(t){$('notice').textContent=t;}
 function product(id){return products.find(p=>p.id===id);}
 function makeOrder(){
@@ -83,7 +83,7 @@ function makeOrder(){
 function render(){
  $('day').textContent=state.day;$('cash').textContent=money(state.cash);$('rep').textContent=state.rep;$('served').textContent=state.served;
  $('rank').textContent=state.rep>=60?'MARKET STAR':state.rep>=30?'LOCAL FAVOURITE':state.rep>=12?'KNOWN SELLER':'NEW SELLER';
- $('stallName').textContent=state.upgrades.includes('awning')?'The Neighbourhood Market':state.upgrades.includes('sign')?'Sunrise Corner Stall':'Your first stall';
+ $('stallName').textContent=state.upgrades.includes('marketroof')?'Grand Neighbourhood Market':state.upgrades.includes('secondstall')?'The Two-Stall Market':state.upgrades.includes('awning')?'The Neighbourhood Market':state.upgrades.includes('sign')?'Sunrise Corner Stall':'Your first stall';
  $('targetText').textContent=money(Math.min(state.earned,state.target))+' / '+money(state.target);
  $('targetBar').style.width=Math.min(100,state.earned/state.target*100)+'%';
  $('marketHint').textContent='TODAY: '+(state.event?state.event.name+' — '+state.event.desc:'Choose fair prices, keep supplies stocked and make customers happy.');
@@ -116,12 +116,12 @@ function render(){
 }
 function buyStock(id){const p=product(id),cost=p.cost*3;if(state.cash<cost)return;say('You bought 3 '+p.name.toLowerCase()+'. Keep an eye on your cash.');state.cash-=cost;state.stock[id]+=3;save();render();}
 function changePrice(id){const p=product(id),choices=[p.price-3,p.price,p.price+4];let current=state.prices[id],next=choices[(choices.indexOf(current)+1)%choices.length];if(!choices.includes(current))next=choices[1];state.prices[id]=Math.max(p.cost+1,next);say(p.name+' price is now '+money(state.prices[id])+'. Fair prices help your reputation.');save();render();}
-function serve(id){const i=state.orders.findIndex(o=>o.id===id);if(i<0)return;const o=state.orders[i],p=product(o.product);if(state.stock[o.product]<o.qty){say('Not enough stock. Buy more supplies first.');return;}
+function serve(id){const i=state.orders.findIndex(o=>o.id===id);if(i<0)return;const o=state.orders[i];
  const lines=o.items||[{product:o.product,qty:o.qty}],totalBase=lines.reduce((sum,x)=>sum+state.prices[x.product]*(x.qty||1),0);let total=totalBase,fair=true;
  for(const line of lines){const item=product(line.product),q=line.qty||1,unit=state.prices[line.product];state.stock[line.product]-=q;if(unit>item.price+2)fair=false;if(unit>item.price+4)state.rep=Math.max(0,state.rep-1);if(state.event&&state.event.kind===line.product)total+=state.event.bonus*q;}
  state.cash+=total;state.earned+=total;state.served++;state.rep+=fair?2:1;if(state.event&&state.event.kind==='kindness'&&fair)state.rep+=state.event.bonus;
  const milestones=[10,25,50,100,250,500],hit=milestones.find(n=>state.served>=n&&!(state.celebratedMilestones||[]).includes(n));if(hit){state.celebratedMilestones=state.celebratedMilestones||[];state.celebratedMilestones.push(hit);say(hit===500?'🏆 INCREDIBLE! 500 CUSTOMERS SERVED! Your market is a neighbourhood legend!':'🎉 Milestone reached: '+hit+' customers served! Your market is growing!');}else if(!fair)say('Basket sold, but some prices felt high. Try fairer prices next time.');else say('Basket complete! You earned '+money(total)+' and gained reputation.');
- state.orders.splice(i,1);if(state.orders.length<(state.upgrades.includes('sign')?4:3)&&!state.closed)makeOrder();save();render();
+ state.orders.splice(i,1);if(state.orders.length<(state.upgrades.includes('cart')?6:state.upgrades.includes('sign')?4:3)&&!state.closed)makeOrder();save();render();
 }
 function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||state.upgrades.includes(id)||state.cash<u.cost||state.rep<u.rep)return;state.cash-=u.cost;state.upgrades.push(id);say(u.name+' installed! Your market is growing.');save();render();}
 function closeDay(){if(state.closed)return;state.closed=true;const bonus=state.earned>=state.target?35:Math.floor(state.earned/10);state.cash+=bonus;if(state.upgrades.includes('secondstall'))state.cash+=Math.floor(state.earned*.10);state.rep+=state.earned>=state.target?3:1;say('Day '+state.day+' closed. Your market bonus: '+money(bonus)+(state.upgrades.includes('secondstall')?' plus second-stall bonus!':'')+'. Reputation increased.');save();render();}
