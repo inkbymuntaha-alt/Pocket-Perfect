@@ -244,3 +244,103 @@ test('level 78 puzzle can be completed and unlocks level 79', async ({ page }) =
   await page.locator('#continue').click();
   await expect(page.locator('#levelname')).toContainText('Level 79');
 });
+
+
+test('all navigation sections open and the prototype shop stays safely disabled', async ({ page }) => {
+  await openGame(page);
+  for (const view of ['levels', 'profile', 'room', 'daily', 'store', 'play']) {
+    await page.locator('[data-view="' + view + '"]').click();
+    await expect(page.locator('#' + view)).toHaveClass(/active/);
+  }
+  await page.locator('[data-view="store"]').click();
+  await expect(page.locator('.product button')).toHaveCount(4);
+  await expect(page.locator('.product button:disabled')).toHaveCount(4);
+  await expect(page.locator('#store button:disabled')).toHaveCount(5);
+});
+
+test('all ten room decorations unlock, render, and persist with the correct coin balance', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 1000 }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await page.locator('[data-view="room"]').click();
+  await expect(page.locator('#decorlist [data-buy]')).toHaveCount(10);
+  for (let i = 0; i < 10; i++) {
+    await page.locator('[data-buy="' + i + '"]').click();
+    await expect(page.locator('[data-buy="' + i + '"]')).toBeDisabled();
+  }
+  await expect(page.locator('#roomProgress')).toHaveText('10/10');
+  await expect(page.locator('#coins')).toHaveText('475');
+  await expect(page.locator('#roomLeafyPlant')).toHaveClass(/owned/);
+  await expect(page.locator('#roomWindowFlowers')).toHaveClass(/owned/);
+  await expect(page.locator('#roomRug')).toHaveClass(/owned/);
+  await expect(page.locator('#roomMat')).toHaveClass(/owned/);
+  await page.reload();
+  await page.locator('[data-view="room"]').click();
+  await expect(page.locator('#roomProgress')).toHaveText('10/10');
+  await expect(page.locator('#coins')).toHaveText('475');
+  await expect(page.locator('#decorlist [data-buy]:disabled')).toHaveCount(10);
+});
+
+test('daily challenge completion rewards are claimed only once', async ({ page }) => {
+  await openGame(page);
+  await page.locator('[data-view="daily"]').click();
+  await page.locator('#dailyPlay').click();
+  await solveCurrentPuzzle(page);
+  let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.dailyChallengesCompleted).toBe(1);
+  const claimedDay = saved.dailyPuzzleClaimed;
+  await page.locator('#continue').click();
+  await page.locator('[data-view="daily"]').click();
+  await page.locator('#dailyPlay').click();
+  await solveCurrentPuzzle(page);
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.dailyChallengesCompleted).toBe(1);
+  expect(saved.dailyPuzzleClaimed).toBe(claimedDay);
+});
+
+test('weekly challenge rewards are claimed only once and the weekly best is saved', async ({ page }) => {
+  await openGame(page);
+  await page.locator('[data-view="daily"]').click();
+  await page.locator('#weeklyPlay').click();
+  await solveCurrentPuzzle(page);
+  let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.weeklyChallengesCompleted).toBe(1);
+  const claimedWeek = saved.weeklyChallengeClaimed;
+  expect(saved.weeklyBestMoves).toBeGreaterThan(0);
+  await page.locator('#continue').click();
+  await page.locator('[data-view="daily"]').click();
+  await page.locator('#weeklyPlay').click();
+  await solveCurrentPuzzle(page);
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.weeklyChallengesCompleted).toBe(1);
+  expect(saved.weeklyChallengeClaimed).toBe(claimedWeek);
+});
+
+test('daily spin saves its prize, disables repeat claims, and keeps the wheel shadow-free', async ({ page }) => {
+  await openGame(page);
+  await page.locator('[data-view="daily"]').click();
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  await page.locator('#spinButton').click();
+  await expect(page.locator('#spinMessage')).toContainText('You won', { timeout: 8000 });
+  const after = await page.evaluate(() => ({
+    save: JSON.parse(localStorage.getItem('pp_v02_save')),
+    meta: JSON.parse(localStorage.getItem('pp_v1_meta'))
+  }));
+  expect(after.meta.spinDay).toBe(new Date().toISOString().slice(0, 10));
+  expect(after.meta.spinPrize).toBeTruthy();
+  expect(after.save.coins > before.coins || after.save.totalStars > before.totalStars).toBe(true);
+  await expect(page.locator('#spinButton')).toBeDisabled();
+  const shadow = await page.locator('#dailySpinWheel').evaluate(el => getComputedStyle(el).boxShadow);
+  expect(shadow).toBe('none');
+});
+
+test('every campaign artwork type renders a valid SVG illustration', async ({ page }) => {
+  await openGame(page);
+  const result = await page.evaluate(() => {
+    const types = [...new Set(iconSets.flat())];
+    return types.map(type => ({ type, valid: art(type).includes('<svg') && !art(type).includes('undefined') }));
+  });
+  expect(result.length).toBeGreaterThan(0);
+  expect(result.every(item => item.valid)).toBe(true);
+});
