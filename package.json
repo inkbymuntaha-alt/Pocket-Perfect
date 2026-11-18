@@ -5,7 +5,8 @@
   "description": "Android wrapper build for Sortaloom: Sort & Restore",
   "scripts": {
     "build:web": "mkdir -p www && cp index.html manifest.webmanifest sw.js icon.svg www/",
-    "android:sync": "npm run build:web && cap sync android"
+    "android:sync": "npm run build:web && cap sync android",
+    "build:android": "npm run build:web && cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.0",
