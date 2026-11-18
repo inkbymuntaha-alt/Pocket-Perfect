@@ -174,3 +174,38 @@ test('completing level 500 shows the final campaign celebration', async ({ page 
   await expect(page.locator('.levelup-card')).toContainText('ALL LEVELS COMPLETE!');
   await expect(page.locator('.levelup-card')).toContainText('500 LEVELS MASTERED');
 });
+
+test('every 100th campaign level triggers a special milestone celebration', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 99,
+      completed: Array.from({ length: 99 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#levelname')).toContainText('Level 100');
+  await solveCurrentPuzzle(page);
+  await expect(page.locator('.levelup-card')).toContainText('100 LEVELS CLEARED!');
+  await expect(page.locator('.levelup-card')).toContainText('MILESTONE MASTER');
+});
+
+
+test('daily spin wheel has the polished pastel prize-wheel styling', async ({ page }) => {
+  await openGame(page);
+  await page.locator('[data-view="daily"]').click();
+  const wheel = page.locator('#dailySpinWheel');
+  await expect(wheel).toBeVisible();
+  const style = await wheel.evaluate(element => ({
+    background: getComputedStyle(element).backgroundImage,
+    border: getComputedStyle(element).borderTopWidth,
+    labels: element.querySelectorAll('.spin-label').length,
+    center: getComputedStyle(element.querySelector('.spin-wheel-center')).width
+  }));
+  expect(style.background).toContain('conic-gradient');
+  expect(style.border).toBe('9px');
+  expect(style.labels).toBe(12);
+  expect(style.center).toBe('59px');
+  await expect(page.locator('#spinButton')).toBeVisible();
+});
