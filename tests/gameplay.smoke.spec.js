@@ -344,3 +344,35 @@ test('every campaign artwork type renders a valid SVG illustration', async ({ pa
   expect(result.length).toBeGreaterThan(0);
   expect(result.every(item => item.valid)).toBe(true);
 });
+
+test('room upgrades unlock in order, change the room style, and persist after reload', async ({ page }) => {
+  await openGame(page);
+  await page.evaluate(() => { state.coins = 3000; save(); refreshHeader(); });
+  await page.locator('[data-view="room"]').click();
+  await expect(page.locator('#roomStageTitle')).toHaveText('Cozy Starter Room');
+  await expect(page.locator('#roomUpgradeButton')).toHaveText('Upgrade · 150 ✧');
+  await page.locator('#roomUpgradeButton').click();
+  await expect(page.locator('#roomStageTitle')).toHaveText('Dreamy Pastel Room');
+  await expect(page.locator('#roomScene')).toHaveAttribute('data-upgrade', '1');
+  await page.locator('#roomUpgradeButton').click();
+  await expect(page.locator('#roomStageTitle')).toHaveText('Luxury Garden Suite');
+  await expect(page.locator('#roomScene')).toHaveAttribute('data-upgrade', '2');
+  await page.locator('#roomUpgradeButton').click();
+  await expect(page.locator('#roomStageTitle')).toHaveText('Magical Dream Suite');
+  await expect(page.locator('#roomScene')).toHaveAttribute('data-upgrade', '3');
+  await expect(page.locator('#roomUpgradeButton')).toBeDisabled();
+  await page.reload();
+  await page.locator('[data-view="room"]').click();
+  await expect(page.locator('#roomStageTitle')).toHaveText('Magical Dream Suite');
+  await expect(page.locator('#roomScene')).toHaveAttribute('data-upgrade', '3');
+  await expect(page.locator('#roomUpgradeButton')).toBeDisabled();
+});
+
+test('room upgrade button blocks purchases when the coin balance is too low', async ({ page }) => {
+  await openGame(page);
+  await page.evaluate(() => { state.coins = 100; save(); refreshHeader(); });
+  await page.locator('[data-view="room"]').click();
+  await expect(page.locator('#roomUpgradeButton')).toBeDisabled();
+  await expect(page.locator('#roomStageTitle')).toHaveText('Cozy Starter Room');
+  await expect(page.locator('#roomScene')).toHaveAttribute('data-upgrade', '0');
+});
