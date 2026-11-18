@@ -410,12 +410,16 @@ test('returning players with an existing save are not interrupted by onboarding'
 
 test('daily login gift is claimable once and the seventh day grants bonus stars', async ({ page }) => { 
   await page.addInitScript(() => {
+    // Seed only once: addInitScript runs again on reload, and reseeding here
+    // would overwrite the very persistence this test is meant to verify.
+    if (sessionStorage.getItem('pp_test_seeded_login')) return;
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
     localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 100, totalStars: 2 }));
     localStorage.setItem('pp_v1_meta', JSON.stringify({
       day: new Date().toISOString().slice(0, 10), wins: 0, questClaimed: false, badges: [],
       loginDay: yesterday, loginStreak: 6
     }));
+    sessionStorage.setItem('pp_test_seeded_login', '1');
   });
   await page.goto('http://127.0.0.1:4173/');
   await page.locator('[data-view="daily"]').click();
