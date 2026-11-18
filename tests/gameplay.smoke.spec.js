@@ -191,3 +191,21 @@ test('every 100th campaign level triggers a special milestone celebration', asyn
   await expect(page.locator('.levelup-card')).toContainText('MILESTONE MASTER');
 });
 
+
+test('daily spin wheel has the polished pastel prize-wheel styling', async ({ page }) => {
+  await openGame(page);
+  await page.locator('[data-view="daily"]').click();
+  const wheel = page.locator('#dailySpinWheel');
+  await expect(wheel).toBeVisible();
+  const style = await wheel.evaluate(element => ({
+    background: getComputedStyle(element).backgroundImage,
+    border: getComputedStyle(element).borderTopWidth,
+    labels: element.querySelectorAll('.spin-label').length,
+    center: getComputedStyle(element.querySelector('.spin-wheel-center')).width
+  }));
+  expect(style.background).toContain('conic-gradient');
+  expect(style.border).toBe('9px');
+  expect(style.labels).toBe(12);
+  expect(style.center).toBe('59px');
+  await expect(page.locator('#spinButton')).toBeVisible();
+});
