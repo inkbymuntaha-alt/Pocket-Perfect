@@ -1,4 +1,4 @@
-# Pocket Perfect: Sort & Restore
+# Sortaloom: Sort & Restore
 
 A small, original browser game prototype. Tap an object, then tap the matching basket. Earn stars and coins, unlock room decorations, and return for a daily bonus.
 
