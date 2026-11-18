@@ -114,7 +114,23 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.combo-celebration,.combo-spark{animation:none!important}}
 
 .levelup-celebration{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;background:#151b36b8;animation:levelupFade .25s ease-out both;pointer-events:none}.levelup-card{position:relative;overflow:hidden;width:min(100%,350px);padding:30px 20px;border:2px solid #ffe28a;border-radius:28px;background:linear-gradient(145deg,#fff7d9,#f5d9ff 58%,#d9eaff);color:#3a315d;text-align:center;box-shadow:0 18px 60px #080d2866;animation:levelupPop .65s cubic-bezier(.16,1.25,.35,1) both}.levelup-card .levelup-crown{font-size:48px;line-height:1.2}.levelup-card strong{display:block;margin-top:8px;font-size:27px;letter-spacing:1px}.levelup-card span{display:block;margin-top:8px;font-weight:800;color:#7051a2;font-size:16px}.levelup-card small{display:block;margin-top:8px;color:#625b78;font-size:13px}.levelup-confetti{position:absolute;top:-18px;width:9px;height:14px;border-radius:3px;animation:levelConfetti 2.1s ease-in both}.levelup-confetti:nth-child(3n){border-radius:50%;width:8px;height:8px}@keyframes levelupFade{from{opacity:0}to{opacity:1}}@keyframes levelupPop{0%{transform:scale(.55) rotate(-5deg);opacity:0}75%{transform:scale(1.06) rotate(2deg)}100%{transform:scale(1);opacity:1}}@keyframes levelConfetti{0%{transform:translateY(-15px) rotate(0);opacity:0}12%{opacity:1}100%{transform:translate(var(--drift),390px) rotate(620deg);opacity:0}}@media(prefers-reduced-motion:reduce){.levelup-celebration,.levelup-card,.levelup-confetti{animation:none!important}}
-.weekly-win-toast{position:fixed;z-index:20;top:12%;left:50%;transform:translateX(-50%);width:min(90%,360px);padding:20px 18px;border-radius:22px;background:linear-gradient(135deg,#fff8df,#fff);border:2px solid #f2c96d;box-shadow:0 14px 45px #17213b44;text-align:center;pointer-events:none;animation:weeklyToastPop .5s cubic-bezier(.2,.8,.2,1) both}.weekly-win-toast strong{display:block;font-size:20px;color:#7b5520}.weekly-win-toast span{display:block;margin-top:7px;font-size:13px;color:#685536;font-weight:800}.weekly-win-toast i{position:absolute;font-style:normal;animation:weeklySpark 1.2s ease-out both}@keyframes weeklyToastPop{0%{opacity:0;translate:0 -18px;scale:.82}100%{opacity:1;translate:0 0;scale:1}}@keyframes weeklySpark{0%{opacity:0;transform:translateY(12px) scale(.5)}35%{opacity:1}100%{opacity:0;transform:translateY(-45px) scale(1.3)}}@media(prefers-reduced-motion:reduce){.weekly-win-toast,.weekly-win-toast i{animation:none!important}}</style>
+.weekly-win-toast{position:fixed;z-index:20;top:12%;left:50%;transform:translateX(-50%);width:min(90%,360px);padding:20px 18px;border-radius:22px;background:linear-gradient(135deg,#fff8df,#fff);border:2px solid #f2c96d;box-shadow:0 14px 45px #17213b44;text-align:center;pointer-events:none;animation:weeklyToastPop .5s cubic-bezier(.2,.8,.2,1) both}.weekly-win-toast strong{display:block;font-size:20px;color:#7b5520}.weekly-win-toast span{display:block;margin-top:7px;font-size:13px;color:#685536;font-weight:800}.weekly-win-toast i{position:absolute;font-style:normal;animation:weeklySpark 1.2s ease-out both}@keyframes weeklyToastPop{0%{opacity:0;translate:0 -18px;scale:.82}100%{opacity:1;translate:0 0;scale:1}}@keyframes weeklySpark{0%{opacity:0;transform:translateY(12px) scale(.5)}35%{opacity:1}100%{opacity:0;transform:translateY(-45px) scale(1.3)}}@media(prefers-reduced-motion:reduce){.weekly-win-toast,.weekly-win-toast i{animation:none!important}}
+/* First-time player tutorial */
+.tutorial-overlay{position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;padding:18px;background:#18213fd9}
+.tutorial-overlay.show{display:flex}
+.tutorial-card{width:100%;max-width:370px;border:1px solid #eee5f7;border-radius:25px;padding:23px 20px;background:linear-gradient(145deg,#fffdf8,#f7f1ff);text-align:center;box-shadow:0 16px 50px #0003}
+.tutorial-kicker{font-size:10px;letter-spacing:1.5px;font-weight:950;color:#9273b5}
+.tutorial-art{font-size:48px;margin:8px 0}
+.tutorial-card h2{font-size:22px;color:#20283e;margin:7px 0}
+.tutorial-card p{font-size:13px;line-height:1.6;color:#69738b;min-height:62px;margin:8px 0 14px}
+.tutorial-dots{display:flex;justify-content:center;gap:7px;margin:12px 0 16px}
+.tutorial-dots span{width:8px;height:8px;border-radius:50%;background:#ddd7e8}
+.tutorial-dots span.active{width:22px;border-radius:99px;background:#9273b5}
+.tutorial-actions{display:flex;gap:8px}
+.tutorial-actions button{flex:1;border:0;border-radius:12px;padding:12px 8px;font-weight:900;font-size:12px}
+.tutorial-skip{background:#eeeef4;color:#68718a}
+.tutorial-next{background:#8065b8;color:white}
+</style>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="Sort satisfying little puzzles, earn stars and restore a cozy room in Pocket Perfect.">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -151,6 +167,17 @@ button:focus-visible{outline:3px solid #6588cf;outline-offset:3px}
 </div><div class="dailycard"><b>Rewarded ads: integration pending</b><p>In the published game, players may voluntarily watch an ad for a hint or bonus coins. No ads are served in this prototype.</p><button class="btn" disabled>Ad network not connected</button></div></div>
 </section>
 <div class="footer">Pocket Perfect · Original code and vector artwork · Progress saved on this device</div>
+
+<div class="tutorial-overlay" id="tutorialOverlay" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+ <div class="tutorial-card">
+  <div class="tutorial-kicker" id="tutorialStepLabel">WELCOME · 1 OF 4</div>
+  <div class="tutorial-art" id="tutorialArt" aria-hidden="true">🌷</div>
+  <h2 id="tutorialTitle">Welcome to Pocket Perfect!</h2>
+  <p id="tutorialCopy">A little sorting, a lot of joy. Here's a quick guide to get you started.</p>
+  <div class="tutorial-dots" id="tutorialDots" aria-hidden="true"><span class="active"></span><span></span><span></span><span></span></div>
+  <div class="tutorial-actions"><button class="tutorial-skip" id="tutorialSkip">Skip</button><button class="tutorial-next" id="tutorialNext">Let's go</button></div>
+ </div>
+</div>
 </main>
 <div class="modal" id="modal"><div class="dialog"><div class="bigstar" id="winIcon">✦</div><div class="celebrate-line" aria-hidden="true">👏 ✨ 👏</div><h2 id="winTitle">Lovely work!</h2><p id="winText">You sorted everything perfectly.</p><div class="reward-line" id="rewardLine" aria-live="polite">Rewards earned</div><button class="btn primary" id="continue">Continue</button><button class="btn" id="goRoom">Decorate my room</button></div></div>
 <script>
@@ -273,7 +300,34 @@ refreshHeader();}
 function buyRoomUpgrade(){const stages=[{cost:150},{cost:350},{cost:700}];const current=Math.max(0,Math.min(3,Number(state.roomUpgrade)||0));if(current>=3)return;const cost=stages[current].cost;if((Number(state.coins)||0)<cost){$("note").textContent="You need "+cost+" coins for this room upgrade.";return;}state.coins-=cost;state.roomUpgrade=current+1;save();renderRoom();const toast=document.createElement("div");toast.className="decor-toast";toast.innerHTML="<strong>🎉 WOW! Room upgraded!</strong><span>"+["Dreamy Pastel Room","Luxury Garden Suite","Magical Dream Suite"][current]+" unlocked ✨</span>";document.body.appendChild(toast);setTimeout(()=>toast.remove(),2800);if(window.pocketPerfectCelebrate)window.pocketPerfectCelebrate();}
 function buyDecor(i){let d=roomItems[i];if(!d||state.decor.includes(i))return;const balance=Number(state.coins)||0;if(balance<d[2]){$("note").textContent="You need "+d[2]+" coins to unlock this decoration.";return;}state.coins=balance-d[2];state.decor.push(i);save();checkProfileTrophies();renderRoom(i);}
 $("dailyJump").onclick=()=>setView("daily");
-loadSave();if(!Array.isArray(state.profileTrophiesSeen))state.profileTrophiesSeen=profileTrophyData().filter(t=>t.ok).map(t=>t.id);save();refreshHeader();renderLevel();renderRoom();
+
+const tutorialSteps=[
+ {label:"WELCOME · 1 OF 4",art:"🌷",title:"Welcome to Pocket Perfect!",copy:"A little sorting, a lot of joy. Here's a quick guide to get you started.",button:"Let's go"},
+ {label:"HOW TO PLAY · 2 OF 4",art:"🧺",title:"Sort each little object",copy:"Tap an object, then tap the basket with its matching category. Find a home for every object to complete the level.",button:"Next"},
+ {label:"EARN REWARDS · 3 OF 4",art:"✨",title:"Earn coins and stars",copy:"Complete levels to collect rewards. Visit Daily for gifts and challenges, and try your free daily spin for a surprise.",button:"Next"},
+ {label:"MAKE IT YOURS · 4 OF 4",art:"🪴",title:"Restore your cozy room",copy:"Spend your earned coins in My Room to unlock decorations and four beautiful room upgrades. Your progress saves on this device.",button:"Start playing"}
+];
+let tutorialStep=0;
+function renderTutorialStep(){
+ const step=tutorialSteps[tutorialStep];
+ $("tutorialStepLabel").textContent=step.label;$("tutorialArt").textContent=step.art;
+ $("tutorialTitle").textContent=step.title;$("tutorialCopy").textContent=step.copy;
+ $("tutorialNext").textContent=step.button;
+ $("tutorialDots").querySelectorAll("span").forEach((dot,i)=>dot.classList.toggle("active",i===tutorialStep));
+ $("tutorialSkip").textContent=tutorialStep===3?"Close":"Skip";
+}
+function closeTutorial(){
+ state.tutorialCompleted=true;save();
+ $("tutorialOverlay").classList.remove("show");
+}
+function startTutorial(){
+ if(state.tutorialCompleted)return;
+ tutorialStep=0;renderTutorialStep();$("tutorialOverlay").classList.add("show");
+}
+$("tutorialNext").onclick=()=>{if(tutorialStep<tutorialSteps.length-1){tutorialStep++;renderTutorialStep();}else closeTutorial();};
+$("tutorialSkip").onclick=closeTutorial;
+
+loadSave();if(!Array.isArray(state.profileTrophiesSeen))state.profileTrophiesSeen=profileTrophyData().filter(t=>t.ok).map(t=>t.id);save();refreshHeader();renderLevel();renderRoom();startTutorial();
 </script>  <script>
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(err => console.warn("Offline setup unavailable", err)));
