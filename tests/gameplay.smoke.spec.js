@@ -209,3 +209,38 @@ test('daily spin wheel has the polished pastel prize-wheel styling', async ({ pa
   expect(style.center).toBe('59px');
   await expect(page.locator('#spinButton')).toBeVisible();
 });
+
+test('campaign progression recovers when the saved current level is already completed', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 77,
+      completed: Array.from({ length: 78 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#levelname')).toContainText('Level 78');
+  await solveCurrentPuzzle(page);
+  await page.locator('#continue').click();
+  await expect(page.locator('#levelname')).toContainText('Level 79');
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.level).toBe(78);
+  expect(saved.completed).toContain(77);
+});
+
+test('level 78 puzzle can be completed and unlocks level 79', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 77,
+      completed: Array.from({ length: 77 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#levelname')).toContainText('Level 78');
+  await solveCurrentPuzzle(page);
+  await page.locator('#continue').click();
+  await expect(page.locator('#levelname')).toContainText('Level 79');
+});
