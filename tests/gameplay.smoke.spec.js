@@ -3,6 +3,8 @@ const { test, expect } = require('@playwright/test');
 test.use({ viewport: { width: 390, height: 844 } });
 
 async function openGame(page) {
+  page.on('pageerror', error => console.log('[BROWSER PAGE ERROR]', error.stack || error.message));
+  page.on('console', message => { if (message.type() === 'error') console.log('[BROWSER CONSOLE ERROR]', message.text()); });
   await page.addInitScript(() => {
     if (!localStorage.getItem('pp_v02_save')) localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 500 }));
   });
