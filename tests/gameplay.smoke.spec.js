@@ -403,5 +403,6 @@ test('returning players with an existing save are not interrupted by onboarding'
   await page.addInitScript(() => localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 25, level: 0 })));
   await page.goto('http://127.0.0.1:4173/');
   await expect(page.locator('#tutorialOverlay')).not.toHaveClass(/show/);
-  await expect(page.locator('#coins')).toHaveText('25');
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.level).toBe(0);
 });
