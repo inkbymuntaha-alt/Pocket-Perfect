@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#102b28">
+<title>Market Makers — Build Your Market</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1716;--panel:#142522;--panel2:#1c302c;--line:#2c4841;--mint:#8ce0b3;--gold:#ffd27a;--ink:#f3f4e9;--muted:#a8bbb1;--red:#ff9b91}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#24463b 0,#0b1716 55%);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);min-height:100vh}
+button{font:inherit;cursor:pointer;border:0}button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.wrap{max-width:900px;margin:auto;padding:16px 14px 36px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:6px 0 16px}.brand small{color:var(--mint);letter-spacing:.15em;font-weight:800;font-size:10px}.brand h1{font-size:clamp(23px,5vw,34px);margin:2px 0}.day{background:var(--panel2);border:1px solid var(--line);padding:9px 13px;border-radius:14px;text-align:center;font-weight:800}.day span{display:block;font-size:10px;color:var(--muted);letter-spacing:.1em}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:13px}.stat,.panel{background:linear-gradient(145deg,#19312c,#12211f);border:1px solid var(--line);border-radius:17px}.stat{padding:11px}.stat label{font-size:11px;color:var(--muted)}.stat strong{display:block;font-size:20px;margin-top:3px}
+.market{padding:15px;margin-bottom:13px;position:relative;overflow:hidden}.market-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.market-head h2{margin:0;font-size:18px}.tag{font-size:10px;color:var(--mint);border:1px solid #46725f;border-radius:20px;padding:5px 8px}.street{height:125px;margin:13px 0 10px;border-radius:13px;background:linear-gradient(#36554a 0 54%,#a47e52 54% 60%,#4a5943 60%);display:flex;align-items:end;justify-content:center;gap:12px;padding:0 12px 12px;position:relative}.sun{position:absolute;right:18px;top:13px;width:27px;height:27px;border-radius:50%;background:#ffd27a;box-shadow:0 0 28px #ffd27a88}.stall{width:44%;max-width:210px;height:78px;background:#c88c54;border:4px solid #704b36;border-radius:9px 9px 4px 4px;position:relative;display:flex;align-items:center;justify-content:center;font-size:35px;box-shadow:0 5px 0 #503b2d}.awning{position:absolute;top:-17px;left:-4px;right:-4px;height:23px;background:repeating-linear-gradient(90deg,#e9bd75 0 20px,#a95e48 20px 40px);border:3px solid #704b36;border-radius:6px}.stall b{position:absolute;bottom:4px;font-size:9px;color:#fff;background:#684b38;padding:2px 7px;border-radius:8px}
+.progress{height:8px;background:#30433d;border-radius:10px;overflow:hidden;margin:8px 0}.progress i{display:block;height:100%;background:linear-gradient(90deg,#75d6a3,#f4d17b);width:0%}.sub{color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}.panel{padding:14px}.panel h3{font-size:15px;margin:0 0 10px}.orders{display:grid;gap:8px}.order{background:#203a33;border:1px solid #36584c;border-radius:13px;padding:10px}.order-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.order strong{font-size:13px}.order p{font-size:11px;color:var(--muted);margin:4px 0 9px}.pill{font-size:10px;color:var(--gold)}.btn{background:var(--mint);color:#10251d;padding:10px 12px;border-radius:11px;font-weight:850;font-size:12px;width:100%}.btn:disabled{opacity:.35;cursor:not-allowed}.btn.alt{background:#2b4940;color:var(--ink);border:1px solid #4b6c5e}.btn.gold{background:var(--gold);color:#302515}.btnrow{display:flex;gap:7px}.btnrow .btn{flex:1}
+.stock{display:grid;gap:8px}.item{display:flex;align-items:center;gap:9px;background:#203a33;padding:9px;border-radius:12px}.emoji{font-size:25px;width:32px;text-align:center}.iteminfo{flex:1;min-width:0}.iteminfo b{font-size:12px;display:block}.iteminfo small{font-size:10px;color:var(--muted)}.qty{font-weight:900;font-size:13px}.tiny{padding:7px 9px;border-radius:9px;background:#34574a;color:#eaf4e9;font-weight:800;font-size:11px}
+.upgrade{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}.upgrade:last-child{border:0}.upgrade b{font-size:12px}.upgrade small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.upgrade button{white-space:nowrap;width:auto}
+.notice{margin:12px 0;padding:11px 13px;background:#21392f;border:1px solid #456b52;border-radius:13px;font-size:12px;color:#e8f4e8;min-height:42px}.bottom{margin-top:12px;display:flex;gap:8px}.bottom button{flex:1}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.top{align-items:flex-start}.street{height:112px}.stats{gap:6px}.stat{padding:9px}.stat strong{font-size:17px}}
+</style>
+</head>
+<body><main class="wrap">
+<header class="top"><div class="brand"><small>MUSHA GAMES PRESENTS</small><h1>Market Makers</h1><div class="sub">A tiny stall. A big ambition.</div></div><div class="day"><span>MARKET DAY</span><b id="day">1</b></div></header>
+<section class="stats">
+<div class="stat"><label>💰 Cash</label><strong id="cash">₹150</strong></div>
+<div class="stat"><label>⭐ Reputation</label><strong id="rep">0</strong></div>
+<div class="stat"><label>🧺 Customers served</label><strong id="served">0</strong></div>
+</section>
+<section class="panel market">
+<div class="market-head"><h2 id="stallName">Your first stall</h2><span class="tag" id="rank">NEW SELLER</span></div>
+<div class="street"><div class="sun"></div><div class="stall"><div class="awning"></div>🧺<b>FRESH FINDS</b></div></div>
+<div class="market-head"><span class="sub">Today's market target</span><b id="targetText">₹80 / ₹80</b></div><div class="progress"><i id="targetBar"></i></div>
+<div class="sub" id="marketHint">Serve customers to build your reputation. Buy stock when supplies run low.</div>
+</section>
+<div class="grid">
+<section class="panel"><h3>🧑‍🤝‍🧑 Waiting customers</h3><div class="orders" id="orders"></div><div class="notice" id="notice" role="status">Welcome! Buy supplies, then serve your first customer.</div><div class="btnrow"><button class="btn alt" id="newCustomer">Find customer</button><button class="btn gold" id="endDay">Close the day →</button></div></section>
+<section class="panel"><h3>📦 Your supplies</h3><div class="stock" id="stock"></div><h3 style="margin-top:18px">🛠️ Improve your stall</h3><div id="upgrades"></div></section>
+</div>
+<div class="bottom"><button class="btn alt" id="saveBtn">Save game</button><button class="btn alt" id="resetBtn">Start over</button></div>
+<p class="sub" style="text-align:center;margin-top:16px">Prototype build • Progress saves on this device • No ads or purchases in this test version</p>
+</main>
+<script>
+(function(){
+'use strict';
+const products=[
+ {id:'fruit',name:'Sunrise fruit',icon:'🍊',cost:8,price:15},
+ {id:'bread',name:'Warm bread',icon:'🥖',cost:10,price:19},
+ {id:'flowers',name:'Wildflower bunch',icon:'💐',cost:12,price:23}
+];
+const upgrades=[
+ {id:'sign',name:'Hand-painted sign',desc:'Attracts more visitors.',cost:120,rep:0},
+ {id:'shelf',name:'Wide display shelf',desc:'Customers order larger baskets.',cost:260,rep:12},
+ {id:'helper',name:'Friendly helper',desc:'Adds a little extra demand each day.',cost:520,rep:30},
+ {id:'awning',name:'Colourful market awning',desc:'Makes your stall a local favourite.',cost:900,rep:60}
+];
+const fresh=()=>({cash:150,rep:0,served:0,day:1,stock:{fruit:5,bread:5,flowers:5},prices:{fruit:15,bread:19,flowers:23},upgrades:[],orders:[],target:80,earned:0,closed:false});
+let state=fresh();
+const $=id=>document.getElementById(id);
+const money=n=>'₹'+Math.floor(n).toLocaleString('en-IN');
+function save(){try{localStorage.setItem('marketMakersSave',JSON.stringify(state));}catch(e){}}
+function load(){try{const raw=localStorage.getItem('marketMakersSave');if(raw){const s=JSON.parse(raw);if(s&&s.stock&&typeof s.cash==='number')state=Object.assign(fresh(),s);}}catch(e){}}
+function say(t){$('notice').textContent=t;}
+function product(id){return products.find(p=>p.id===id);}
+function makeOrder(){
+ if(state.orders.length>=3){say('You already have three customers waiting. Serve one first!');return;}
+ const p=products[Math.floor(Math.random()*products.length)];
+ const qty=1+(Math.random()<(state.upgrades.includes('shelf')?.45:.2)?1:0);
+ const moods=['A cheerful neighbour','A busy commuter','A curious visitor','A regular customer'];
+ state.orders.push({id:Date.now()+Math.random(),product:p.id,qty:qty,customer:moods[Math.floor(Math.random()*moods.length)]});
+ render();
+}
+function render(){
+ $('day').textContent=state.day;$('cash').textContent=money(state.cash);$('rep').textContent=state.rep;$('served').textContent=state.served;
+ $('rank').textContent=state.rep>=60?'MARKET STAR':state.rep>=30?'LOCAL FAVOURITE':state.rep>=12?'KNOWN SELLER':'NEW SELLER';
+ $('stallName').textContent=state.upgrades.includes('awning')?'The Neighbourhood Market':state.upgrades.includes('sign')?'Sunrise Corner Stall':'Your first stall';
+ $('targetText').textContent=money(Math.min(state.earned,state.target))+' / '+money(state.target);
+ $('targetBar').style.width=Math.min(100,state.earned/state.target*100)+'%';
+ $('marketHint').textContent=state.closed?'The market is closed for today. Start the next day when ready.':'Choose fair prices, keep supplies stocked and make customers happy.';
+ $('orders').innerHTML='';
+ if(!state.orders.length){const e=document.createElement('div');e.className='sub';e.textContent='No customers waiting. Tap “Find customer” to invite someone in.';$('orders').appendChild(e);}
+ state.orders.forEach(o=>{
+  const p=product(o.product),el=document.createElement('div');el.className='order';
+  const top=document.createElement('div');top.className='order-top';
+  const title=document.createElement('strong');title.textContent=o.customer;
+  const pill=document.createElement('span');pill.className='pill';pill.textContent=p.icon+' '+p.name+' × '+o.qty;
+  top.append(title,pill);const desc=document.createElement('p');desc.textContent='Offer price: '+money(state.prices[p.id])+' each · Reward: '+money(state.prices[p.id]*o.qty);
+  const btn=document.createElement('button');btn.className='btn';btn.textContent='Serve customer';btn.disabled=state.closed||state.stock[p.id]<o.qty;btn.addEventListener('click',()=>serve(o.id));el.append(top,desc,btn);$('orders').appendChild(el);
+ });
+ $('stock').innerHTML='';
+ products.forEach(p=>{
+  const row=document.createElement('div');row.className='item';
+  const ico=document.createElement('span');ico.className='emoji';ico.textContent=p.icon;
+  const info=document.createElement('div');info.className='iteminfo';const b=document.createElement('b');b.textContent=p.name;const sm=document.createElement('small');sm.textContent='Buy '+money(p.cost)+' · Sell '+money(state.prices[p.id]);info.append(b,sm);
+  const qty=document.createElement('span');qty.className='qty';qty.textContent='×'+state.stock[p.id];
+  const buy=document.createElement('button');buy.className='tiny';buy.textContent='+3';buy.disabled=state.closed||state.cash<p.cost*3;buy.addEventListener('click',()=>buyStock(p.id));
+  const price=document.createElement('button');price.className='tiny';price.textContent='Price';price.disabled=state.closed;price.addEventListener('click',()=>changePrice(p.id));
+  row.append(ico,info,qty,buy,price);$('stock').appendChild(row);
+ });
+ $('upgrades').innerHTML='';
+ upgrades.forEach(u=>{
+  const row=document.createElement('div');row.className='upgrade';const info=document.createElement('div');const b=document.createElement('b');b.textContent=u.name;const sm=document.createElement('small');sm.textContent=state.upgrades.includes(u.id)?'Already installed':u.desc+' · '+money(u.cost)+' · '+u.rep+' reputation';info.append(b,sm);
+  const btn=document.createElement('button');btn.className='tiny';btn.textContent=state.upgrades.includes(u.id)?'Owned':'Buy';btn.disabled=state.closed||state.upgrades.includes(u.id)||state.cash<u.cost||state.rep<u.rep;btn.addEventListener('click',()=>buyUpgrade(u.id));row.append(info,btn);$('upgrades').appendChild(row);
+ });
+ $('endDay').disabled=state.closed;$('newCustomer').disabled=state.closed||state.orders.length>=3;
+}
+function buyStock(id){const p=product(id),cost=p.cost*3;if(state.cash<cost)return;say('You bought 3 '+p.name.toLowerCase()+'. Keep an eye on your cash.');state.cash-=cost;state.stock[id]+=3;save();render();}
+function changePrice(id){const p=product(id),choices=[p.price-3,p.price,p.price+4];let current=state.prices[id],next=choices[(choices.indexOf(current)+1)%choices.length];if(!choices.includes(current))next=choices[1];state.prices[id]=Math.max(p.cost+1,next);say(p.name+' price is now '+money(state.prices[id])+'. Fair prices help your reputation.');save();render();}
+function serve(id){const i=state.orders.findIndex(o=>o.id===id);if(i<0)return;const o=state.orders[i],p=product(o.product);if(state.stock[o.product]<o.qty){say('Not enough stock. Buy more supplies first.');return;}
+ const unit=state.prices[o.product],base=p.price;let total=unit*o.qty;state.stock[o.product]-=o.qty;state.cash+=total;state.earned+=total;state.served++;
+ const fair=unit<=base+2;state.rep+=fair?2:1;if(unit>base+4){state.rep=Math.max(0,state.rep-1);say('Customer paid, but the price felt too high. Try a fairer price next time.');}else say('Order complete! You earned '+money(total)+' and gained reputation.');
+ state.orders.splice(i,1);if(state.orders.length<2&&!state.closed)makeOrder();save();render();
+}
+function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||state.upgrades.includes(id)||state.cash<u.cost||state.rep<u.rep)return;state.cash-=u.cost;state.upgrades.push(id);say(u.name+' installed! Your market is growing.');save();render();}
+function closeDay(){if(state.closed)return;state.closed=true;const bonus=state.earned>=state.target?35:Math.floor(state.earned/10);state.cash+=bonus;state.rep+=state.earned>=state.target?3:1;say('Day '+state.day+' closed. Your market bonus: '+money(bonus)+'. Reputation increased.');save();render();}
+function nextDay(){state.day++;state.closed=false;state.earned=0;state.target=80+state.day*22+(state.upgrades.includes('awning')?30:0);if(state.upgrades.includes('helper'))state.cash+=15;state.orders=[];for(let i=0;i<2;i++)makeOrder();say('A new market day begins. Your target is '+money(state.target)+'.');save();render();}
+$('newCustomer').addEventListener('click',makeOrder);$('endDay').addEventListener('click',()=>{if(!state.closed){closeDay();$('endDay').textContent='Open next day →';}else nextDay();});
+$('saveBtn').addEventListener('click',()=>{save();say('Game saved on this device.');});
+$('resetBtn').addEventListener('click',()=>{if(confirm('Start a new market and erase this device’s saved progress?')){state=fresh();state.orders=[];for(let i=0;i<2;i++)makeOrder();save();say('A fresh market is ready.');render();}});
+load();if(!state.orders.length&&!state.closed){makeOrder();makeOrder();}if(state.closed)$('endDay').textContent='Open next day →';render();
+})();
+</script></body></html>
