@@ -12,7 +12,7 @@ The included workflow deploys the repository to GitHub Pages whenever you push t
 
 ## Current prototype limitations
 
-- The 100 levels are generated from 20 original theme/category sets; this is a prototype, not 100 individually hand-designed levels.
+- The 500 campaign levels are generated from 20 original theme/category sets; this is a prototype, not 500 individually hand-designed levels.
 - Progress is stored locally on the current device/browser. It does not sync between devices.
 - The shop is a preview only. No ads, analytics, payment processing, or Google Play Billing are connected.
 - This is a web/PWA prototype, not an Android APK or an approved Google Play release.
