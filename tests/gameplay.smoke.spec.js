@@ -406,3 +406,106 @@ test('returning players with an existing save are not interrupted by onboarding'
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
   expect(saved.level).toBe(0);
 });
+
+
+test('daily login gift is claimable once and the seventh day grants bonus stars', async ({ page }) => {
+  await page.addInitScript(() => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    localStorage.setItem('pp_v02_save', JSON.stringify({ coins: 100, totalStars: 2 }));
+    localStorage.setItem('pp_v1_meta', JSON.stringify({
+      day: new Date().toISOString().slice(0, 10), wins: 0, questClaimed: false, badges: [],
+      loginDay: yesterday, loginStreak: 6
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await page.locator('[data-view="daily"]').click();
+  await expect(page.locator('#loginStreak')).toHaveText('Day 7/7');
+  await expect(page.locator('#loginClaimButton')).toBeEnabled();
+  await page.locator('#loginClaimButton').click();
+  await expect(page.locator('#loginClaimButton')).toBeDisabled();
+  const saved = await page.evaluate(() => ({
+    game: JSON.parse(localStorage.getItem('pp_v02_save')),
+    meta: JSON.parse(localStorage.getItem('pp_v1_meta'))
+  }));
+  expect(saved.game.coins).toBe(160);
+  expect(saved.game.totalStars).toBe(9);
+  expect(saved.meta.loginStreak).toBe(7);
+  await page.reload();
+  await page.locator('[data-view="daily"]').click();
+  await expect(page.locator('#loginClaimButton')).toBeDisabled();
+  await expect(page.locator('#coins')).toHaveText('160');
+});
+
+test('daily missions pay once, unlock a mystery gift, and persist after reload', async ({ page }) => {
+  await openGame(page);
+  await solveCurrentPuzzle(page);
+  await page.locator('#continue').click();
+  await page.locator('[data-view="daily"]').click();
+  const before = Number(await page.locator('#coins').textContent());
+  const mission = page.locator('[data-mission="first"]');
+  await expect(mission).toBeEnabled();
+  await mission.click();
+  await expect(page.locator('[data-mission="first"]')).toBeDisabled();
+  await expect(page.locator('#coins')).toHaveText(String(before + 15));
+  await expect(page.locator('#mysteryClaimButton')).toBeEnabled();
+  await page.locator('#mysteryClaimButton').click();
+  let saved = await page.evaluate(() => ({
+    game: JSON.parse(localStorage.getItem('pp_v02_save')),
+    meta: JSON.parse(localStorage.getItem('pp_v1_meta'))
+  }));
+  expect(saved.meta.missionClaims).toContain('first');
+  expect(saved.meta.mysteryDay).toBe(new Date().toISOString().slice(0, 10));
+  expect(['+25 coins', '+40 coins', '+60 coins', '+2 stars']).toContain(saved.meta.mysteryPrize);
+  await page.reload();
+  await page.locator('[data-view="daily"]').click();
+  await expect(page.locator('[data-mission="first"]')).toBeDisabled();
+  await expect(page.locator('#mysteryClaimButton')).toBeDisabled();
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v1_meta')));
+  expect(saved.missionClaims).toContain('first');
+});
+
+test('weekly return prize grants a free room decoration and cannot be claimed twice', async ({ page }) => {
+  await openGame(page);
+  const week = await page.evaluate(() => weeklyKey());
+  const today = await page.evaluate(() => new Date().toISOString().slice(0, 10));
+  await page.evaluate(({ week, today }) => {
+    localStorage.setItem('pp_v1_meta', JSON.stringify({
+      day: today, wins: 1, questClaimed: false, badges: [],
+      missionDay: today, missionClaims: [], weeklyMissionWeek: week, weeklyMissionClaims: 4
+    }));
+  }, { week, today });
+  await page.reload();
+  await page.locator('[data-view="daily"]').click();
+  const before = Number(await page.locator('#coins').textContent());
+  await page.locator('[data-mission="first"]').click();
+  await expect(page.locator('#weeklyPrizeButton')).toBeEnabled();
+  await page.locator('#weeklyPrizeButton').click();
+  await expect(page.locator('#weeklyPrizeButton')).toBeDisabled();
+  await expect(page.locator('#coins')).toHaveText(String(before + 95));
+  let saved = await page.evaluate(() => ({
+    game: JSON.parse(localStorage.getItem('pp_v02_save')),
+    meta: JSON.parse(localStorage.getItem('pp_v1_meta'))
+  }));
+  expect(saved.game.decor).toContain(0);
+  expect(saved.meta.weeklyPrizeClaimed).toBeTruthy();
+  await page.reload();
+  await page.locator('[data-view="room"]').click();
+  await expect(page.locator('[data-buy="0"]')).toBeDisabled();
+  await page.locator('[data-view="daily"]').click();
+  await expect(page.locator('#weeklyPrizeButton')).toBeDisabled();
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v1_meta')));
+  expect(saved.weeklyMissionClaims).toBe(5);
+});
+
+test('daily return cards fit narrow mobile screens without horizontal overflow', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await openGame(page);
+  await page.locator('[data-view="daily"]').click();
+  await expect(page.locator('#dailyMissionList .return-mission')).toHaveCount(3);
+  await expect(page.locator('#mysteryClaimButton')).toBeVisible();
+  const dimensions = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    page: document.documentElement.scrollWidth
+  }));
+  expect(dimensions.page).toBeLessThanOrEqual(dimensions.viewport + 1);
+});
