@@ -138,6 +138,37 @@ test('mobile layout keeps navigation and gameplay controls visible', async ({ pa
 });
 
 
+test('golden spotlight round rewards players who sort the highlighted basket first', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 9,
+      completed: Array.from({ length: 9 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  await expect(page.locator('#levelname')).toContainText('Level 10');
+  const target = await page.evaluate(() => currentData.spotlight.bin);
+  await expect(page.locator(`[data-bin="${target}"]`)).toHaveClass(/spotlight/);
+  await expect(page.locator('#levelhint')).toContainText('GOLDEN SPOTLIGHT');
+  const order = await page.evaluate(() => {
+    const targetBin = currentData.spotlight.bin;
+    return [
+      ...currentItems.map((item, index) => ({ index, bin: item.bin })).filter(item => item.bin === targetBin),
+      ...currentItems.map((item, index) => ({ index, bin: item.bin })).filter(item => item.bin !== targetBin)
+    ];
+  });
+  for (const move of order) {
+    await page.locator(`[data-item="${move.index}"]`).click();
+    await page.locator(`[data-bin="${move.bin}"]`).click();
+  }
+  await expect(page.locator('#modal')).toHaveClass(/show/);
+  await expect(page.locator('#rewardLine')).toContainText('spotlight bonus');
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pp_v02_save')));
+  expect(saved.completed).toContain(9);
+});
+
 test('all 500 generated campaign levels have valid, solvable sorting data', async ({ page }) => {
   await openGame(page);
   const result = await page.evaluate(() => {
@@ -149,7 +180,8 @@ test('all 500 generated campaign levels have valid, solvable sorting data', asyn
         threeCategories: data.labels.length === 3,
         binsValid: data.items.every(item => Number.isInteger(item.bin) && item.bin >= 0 && item.bin < 3),
         allBinsUsed: bins.join(',') === '0,1,2',
-        goldenCorrect: data.golden === ((index + 1) % 10 === 0)
+        goldenCorrect: data.golden === ((index + 1) % 10 === 0),
+        spotlightCorrect: data.golden ? !!data.spotlight && data.spotlight.total === data.items.filter(item => item.bin === data.spotlight.bin).length : !data.spotlight
       };
     });
     const dailyA = dailyLevelData();
@@ -160,7 +192,8 @@ test('all 500 generated campaign levels have valid, solvable sorting data', asyn
       levels,
       objectSets: Array.from({ length: 500 }, (_, index) => levelData(index).types.slice().sort().join('|')),
       dailyStable: JSON.stringify(dailyA.items) === JSON.stringify(dailyB.items),
-      weeklyStable: JSON.stringify(weeklyA.items) === JSON.stringify(weeklyB.items)
+      weeklyStable: JSON.stringify(weeklyA.items) === JSON.stringify(weeklyB.items),
+      specialModesClearSpotlight: !dailyA.spotlight && !weeklyA.spotlight
     };
   });
   expect(result.levels).toHaveLength(500);
@@ -168,6 +201,8 @@ test('all 500 generated campaign levels have valid, solvable sorting data', asyn
   expect(new Set(result.objectSets).size).toBe(500);
   expect(result.dailyStable).toBe(true);
   expect(result.weeklyStable).toBe(true);
+  expect(result.levels.every(level => level.spotlightCorrect)).toBe(true);
+  expect(result.specialModesClearSpotlight).toBe(true);
   await page.locator('[data-view="levels"]').click();
   await expect(page.locator('#levelGrid .level-choice')).toHaveCount(500);
   await expect(page.locator('[data-level="499"]')).toBeDisabled();
