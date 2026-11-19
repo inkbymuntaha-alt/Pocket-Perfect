@@ -39,6 +39,12 @@ jobs:
       - name: Generate native Android project
         working-directory: market-makers
         run: npx cap add android
+      - name: Verify Android 16 target SDK
+        working-directory: market-makers
+        run: |
+          grep -Eq 'targetSdkVersion[[:space:]]*=[[:space:]]*36' android/variables.gradle
+          grep -Eq 'compileSdkVersion[[:space:]]*=[[:space:]]*36' android/variables.gradle
+          echo "Android 16 / API 36 target and compile SDK verified."
       - name: Synchronize Capacitor
         working-directory: market-makers
         run: npx cap sync android
