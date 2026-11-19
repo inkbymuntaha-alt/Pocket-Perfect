@@ -1,0 +1,6 @@
+{
+  "appId": "com.mushagames.marketmakers",
+  "appName": "Market Makers",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
