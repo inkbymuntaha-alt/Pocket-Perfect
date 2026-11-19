@@ -1,0 +1,54 @@
+name: Build Market Makers Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [market-makers-prototype]
+    paths:
+      - "market-makers/**"
+      - ".github/workflows/market-makers-android.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  android-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0
+      - name: Install wrapper dependencies
+        working-directory: market-makers
+        run: npm install
+      - name: Bundle Market Makers web game
+        working-directory: market-makers
+        run: mkdir -p www && cp index.html www/index.html
+      - name: Generate native Android project
+        working-directory: market-makers
+        run: npx cap add android
+      - name: Synchronize Capacitor
+        working-directory: market-makers
+        run: npx cap sync android
+      - name: Build debug APK
+        working-directory: market-makers/android
+        run: ./gradlew assembleDebug
+      - name: Upload installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-makers-android-debug-apk
+          path: market-makers/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
