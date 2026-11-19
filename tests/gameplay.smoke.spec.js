@@ -158,12 +158,14 @@ test('all 500 generated campaign levels have valid, solvable sorting data', asyn
     const weeklyB = weeklyLevelData();
     return {
       levels,
+      objectSets: Array.from({ length: 500 }, (_, index) => levelData(index).types.slice().sort().join('|')),
       dailyStable: JSON.stringify(dailyA.items) === JSON.stringify(dailyB.items),
       weeklyStable: JSON.stringify(weeklyA.items) === JSON.stringify(weeklyB.items)
     };
   });
   expect(result.levels).toHaveLength(500);
   expect(result.levels.every(level => Object.values(level).every(Boolean))).toBe(true);
+  expect(new Set(result.objectSets).size).toBe(500);
   expect(result.dailyStable).toBe(true);
   expect(result.weeklyStable).toBe(true);
   await page.locator('[data-view="levels"]').click();
@@ -186,6 +188,8 @@ test('completing level 500 shows the final campaign celebration', async ({ page 
   await solveCurrentPuzzle(page);
   await expect(page.locator('.levelup-card')).toContainText('ALL LEVELS COMPLETE!');
   await expect(page.locator('.levelup-card')).toContainText('500 LEVELS MASTERED');
+  await expect(page.locator('.levelup-celebration')).toHaveClass(/final-500/);
+  await expect(page.locator('.final-countdown')).toContainText('20 seconds');
 });
 
 test('every 100th campaign level triggers a special milestone celebration', async ({ page }) => {
