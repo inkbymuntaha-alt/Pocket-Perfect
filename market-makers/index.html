@@ -16,8 +16,8 @@ button{font:inherit;cursor:pointer;border:0}button:focus-visible{outline:3px sol
 .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}.panel{padding:14px}.panel h3{font-size:15px;margin:0 0 10px}.orders{display:grid;gap:8px}.order{background:#203a33;border:1px solid #36584c;border-radius:13px;padding:10px}.order-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.order strong{font-size:13px}.order p{font-size:11px;color:var(--muted);margin:4px 0 9px}.pill{font-size:10px;color:var(--gold)}.btn{background:var(--mint);color:#10251d;padding:10px 12px;border-radius:11px;font-weight:850;font-size:12px;width:100%}.btn:disabled{opacity:.35;cursor:not-allowed}.btn.alt{background:#2b4940;color:var(--ink);border:1px solid #4b6c5e}.btn.gold{background:var(--gold);color:#302515}.btnrow{display:flex;gap:7px}.btnrow .btn{flex:1}
 .stock{display:grid;gap:8px}.item{display:flex;align-items:center;gap:9px;background:#203a33;padding:9px;border-radius:12px}.emoji{font-size:25px;width:32px;text-align:center}.iteminfo{flex:1;min-width:0}.iteminfo b{font-size:12px;display:block}.iteminfo small{font-size:10px;color:var(--muted)}.qty{font-weight:900;font-size:13px}.tiny{padding:7px 9px;border-radius:9px;background:#34574a;color:#eaf4e9;font-weight:800;font-size:11px}
 .upgrade{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}.upgrade:last-child{border:0}.upgrade b{font-size:12px}.upgrade small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.upgrade button{white-space:nowrap;width:auto}
-.notice{margin:12px 0;padding:11px 13px;background:#21392f;border:1px solid #456b52;border-radius:13px;font-size:12px;color:#e8f4e8;min-height:42px}.bottom{margin-top:12px;display:flex;gap:8px}.bottom button{flex:1}
-@media(max-width:650px){.grid{grid-template-columns:1fr}.top{align-items:flex-start}.street{height:112px}.stats{gap:6px}.stat{padding:9px}.stat strong{font-size:17px}}
+.notice{margin:12px 0;padding:11px 13px;background:#21392f;border:1px solid #456b52;border-radius:13px;font-size:12px;color:#e8f4e8;min-height:42px}.community{margin-top:12px}.community-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.community-card{background:#203a33;border:1px solid #36584c;border-radius:13px;padding:11px}.community-card b{font-size:13px}.community-card p{font-size:11px;color:var(--muted);margin:5px 0}.regulars{display:flex;flex-wrap:wrap;gap:6px}.regular{background:#34574a;color:#eaf4e9;border-radius:18px;padding:6px 9px;font-size:10px}.bottom{margin-top:12px;display:flex;gap:8px}.bottom button{flex:1}
+@media(max-width:650px){.community-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.top{align-items:flex-start}.street{height:112px}.stats{gap:6px}.stat{padding:9px}.stat strong{font-size:17px}}
 </style>
 </head>
 <body><main class="wrap">
@@ -37,6 +37,7 @@ button{font:inherit;cursor:pointer;border:0}button:focus-visible{outline:3px sol
 <section class="panel"><h3>🧑‍🤝‍🧑 Waiting customers</h3><div class="orders" id="orders"></div><div class="notice" id="notice" role="status">Welcome! Buy supplies, then serve your first customer.</div><div class="btnrow"><button class="btn alt" id="newCustomer">Find customer</button><button class="btn gold" id="endDay">Close the day →</button></div></section>
 <section class="panel"><h3>📦 Your supplies</h3><div class="stock" id="stock"></div><h3 style="margin-top:18px">🛠️ Improve your stall</h3><div id="upgrades"></div></section>
 </div>
+<section class="panel community"><h3>🏡 Your market community</h3><div class="community-grid"><div class="community-card"><b>⭐ Weekly market challenge</b><p id="weeklyText">Serve 12 customers this week.</p><div class="progress"><i id="weeklyBar"></i></div><small class="sub" id="weeklyReward">Reward: ₹150 and 8 reputation</small></div><div class="community-card"><b>💚 Your regular customers</b><p>Build relationships by welcoming familiar faces.</p><div class="regulars" id="regulars"><span class="sub">Your regulars will appear here.</span></div></div></div></section>
 <div class="bottom"><button class="btn alt" id="saveBtn">Save game</button><button class="btn alt" id="resetBtn">Start over</button></div>
 <p class="sub" style="text-align:center;margin-top:16px">Prototype build • Progress saves on this device • No ads or purchases in this test version</p>
 </main>
@@ -62,7 +63,8 @@ const upgrades=[
 ];
 const events=[{name:'Harvest Festival',desc:'Fruit orders earn an extra ₹3 each.',kind:'fruit',bonus:3},{name:'Fresh Bread Morning',desc:'Bread orders earn an extra ₹4 each.',kind:'bread',bonus:4},{name:'Flower Fair',desc:'Flower orders earn an extra ₹4 each.',kind:'flowers',bonus:4},{name:'Kind Neighbours Day',desc:'Every fair sale earns 1 extra reputation.',kind:'kindness',bonus:1}];
 const pickEvent=()=>events[Math.floor(Math.random()*events.length)];
-const fresh=()=>({cash:150,rep:0,served:0,day:1,stock:{fruit:5,bread:5,flowers:5,veggies:5,honey:5,jam:5},prices:{fruit:15,bread:19,flowers:23,veggies:17,honey:29,jam:25},upgrades:[],orders:[],target:80,earned:0,closed:false,event:pickEvent(),celebratedMilestones:[]});
+const regularCustomers=[{id:'mira',name:'Mira the student',likes:'fruit'},{id:'dev',name:'Dev the office commuter',likes:'bread'},{id:'asha',name:'Asha the home cook',likes:'veggies'},{id:'kabir',name:'Kabir the café owner',likes:'honey'},{id:'nina',name:'Nina the flower fan',likes:'flowers'},{id:'rohan',name:'Rohan the picnic planner',likes:'jam'},{id:'leela',name:'Leela the home baker',likes:'bread'},{id:'sam',name:'Sam the neighbour',likes:'fruit'}];
+const fresh=()=>({cash:150,rep:0,served:0,day:1,customerVisits:{},weeklyServed:0,weeklyClaimed:false,stock:{fruit:5,bread:5,flowers:5,veggies:5,honey:5,jam:5},prices:{fruit:15,bread:19,flowers:23,veggies:17,honey:29,jam:25},upgrades:[],orders:[],target:80,earned:0,closed:false,event:pickEvent(),celebratedMilestones:[]});
 let state=fresh();
 const $=id=>document.getElementById(id);
 const money=n=>'₹'+Math.floor(n).toLocaleString('en-IN');
@@ -73,11 +75,12 @@ function product(id){return products.find(p=>p.id===id);}
 function makeOrder(){
  const limit=state.upgrades.includes('cart')?6:state.upgrades.includes('sign')?4:3;
  if(state.orders.length>=limit){say('Your customer queue is full. Serve a basket first!');return;}
- const p=products[Math.floor(Math.random()*products.length)];
+ const familiar=regularCustomers.filter(c=>(state.customerVisits[c.id]||0)>0);
+ const customer=familiar.length&&Math.random()<.38?familiar[Math.floor(Math.random()*familiar.length)]:regularCustomers[Math.floor(Math.random()*regularCustomers.length)];
+ const p=Math.random()<.55?product(customer.likes):products[Math.floor(Math.random()*products.length)];
  const qty=1+(Math.random()<(state.upgrades.includes('shelf')?.45:.2)?1:0);
  const items=[{product:p.id,qty}];if(Math.random()<.32){const other=products[Math.floor(Math.random()*products.length)];if(other.id!==p.id)items.push({product:other.id,qty:1});}
- const moods=['Mira the student','Dev the office commuter','Asha the home cook','Kabir the café owner','Nina the flower fan','A friendly neighbour','Rohan the picnic planner','Leela the home baker'];
- state.orders.push({id:Date.now()+Math.random(),items,customer:moods[Math.floor(Math.random()*moods.length)]});
+ state.orders.push({id:Date.now()+Math.random(),items,customer:customer.name,customerKey:customer.id});
  render();
 }
 function render(){
@@ -87,6 +90,13 @@ function render(){
  $('targetText').textContent=money(Math.min(state.earned,state.target))+' / '+money(state.target);
  $('targetBar').style.width=Math.min(100,state.earned/state.target*100)+'%';
  $('marketHint').textContent='TODAY: '+(state.event?state.event.name+' — '+state.event.desc:'Choose fair prices, keep supplies stocked and make customers happy.');
+ const week=Math.floor((state.day-1)/7)+1,weeklyGoal=12;
+ $('weeklyText').textContent='Week '+week+': '+(state.weeklyServed||0)+' / '+weeklyGoal+' customers served'+(state.weeklyClaimed?' — completed!':'');
+ $('weeklyBar').style.width=Math.min(100,(state.weeklyServed||0)/weeklyGoal*100)+'%';
+ $('weeklyReward').textContent=state.weeklyClaimed?'Reward collected: ₹150 + 8 reputation':'Reward at 12 customers: ₹150 + 8 reputation';
+ $('regulars').innerHTML='';
+ regularCustomers.filter(c=>(state.customerVisits[c.id]||0)>0).sort((a,b)=>(state.customerVisits[b.id]||0)-(state.customerVisits[a.id]||0)).slice(0,6).forEach(c=>{const chip=document.createElement('span');chip.className='regular';chip.textContent=c.name.split(' ')[0]+' · '+state.customerVisits[c.id]+' visits';$('regulars').appendChild(chip);});
+ if(!$('regulars').children.length)$('regulars').innerHTML='<span class="sub">Your regulars will appear here.</span>';
  $('orders').innerHTML='';
  if(!state.orders.length){const e=document.createElement('div');e.className='sub';e.textContent='No customers waiting. Tap “Find customer” to invite someone in.';$('orders').appendChild(e);}
  state.orders.forEach(o=>{
@@ -119,13 +129,15 @@ function changePrice(id){const p=product(id),choices=[p.price-3,p.price,p.price+
 function serve(id){const i=state.orders.findIndex(o=>o.id===id);if(i<0)return;const o=state.orders[i];
  const lines=o.items||[{product:o.product,qty:o.qty}],totalBase=lines.reduce((sum,x)=>sum+state.prices[x.product]*(x.qty||1),0);let total=totalBase,fair=true;
  for(const line of lines){const item=product(line.product),q=line.qty||1,unit=state.prices[line.product];state.stock[line.product]-=q;if(unit>item.price+2)fair=false;if(unit>item.price+4)state.rep=Math.max(0,state.rep-1);if(state.event&&state.event.kind===line.product)total+=state.event.bonus*q;}
- state.cash+=total;state.earned+=total;state.served++;state.rep+=fair?2:1;if(state.event&&state.event.kind==='kindness'&&fair)state.rep+=state.event.bonus;
+ state.cash+=total;state.earned+=total;state.served++;state.weeklyServed=(state.weeklyServed||0)+1;state.rep+=fair?2:1;
+ const customerKey=o.customerKey||null;if(customerKey){state.customerVisits=state.customerVisits||{};state.customerVisits[customerKey]=(state.customerVisits[customerKey]||0)+1;const visits=state.customerVisits[customerKey];if(visits%3===0){state.cash+=10;state.rep+=2;say('💚 '+o.customer+' is becoming a regular! Loyalty bonus: ₹10 and 2 reputation.');}}
+ if(state.weeklyServed>=12&&!state.weeklyClaimed){state.weeklyClaimed=true;state.cash+=150;state.rep+=8;say('🏆 WEEKLY MARKET CHALLENGE COMPLETE! You earned ₹150 and 8 reputation!');}if(state.event&&state.event.kind==='kindness'&&fair)state.rep+=state.event.bonus;
  const milestones=[10,25,50,100,250,500],hit=milestones.find(n=>state.served>=n&&!(state.celebratedMilestones||[]).includes(n));if(hit){state.celebratedMilestones=state.celebratedMilestones||[];state.celebratedMilestones.push(hit);say(hit===500?'🏆 INCREDIBLE! 500 CUSTOMERS SERVED! Your market is a neighbourhood legend!':'🎉 Milestone reached: '+hit+' customers served! Your market is growing!');}else if(!fair)say('Basket sold, but some prices felt high. Try fairer prices next time.');else say('Basket complete! You earned '+money(total)+' and gained reputation.');
  state.orders.splice(i,1);if(state.orders.length<(state.upgrades.includes('cart')?6:state.upgrades.includes('sign')?4:3)&&!state.closed)makeOrder();save();render();
 }
 function buyUpgrade(id){const u=upgrades.find(x=>x.id===id);if(!u||state.upgrades.includes(id)||state.cash<u.cost||state.rep<u.rep)return;state.cash-=u.cost;state.upgrades.push(id);say(u.name+' installed! Your market is growing.');save();render();}
 function closeDay(){if(state.closed)return;state.closed=true;const bonus=state.earned>=state.target?35:Math.floor(state.earned/10);state.cash+=bonus;if(state.upgrades.includes('secondstall'))state.cash+=Math.floor(state.earned*.10);state.rep+=state.earned>=state.target?3:1;say('Day '+state.day+' closed. Your market bonus: '+money(bonus)+(state.upgrades.includes('secondstall')?' plus second-stall bonus!':'')+'. Reputation increased.');save();render();}
-function nextDay(){state.day++;state.closed=false;state.earned=0;state.target=80+state.day*22;if(state.upgrades.includes('helper'))state.cash+=15;if(state.upgrades.includes('awning'))state.rep+=2;state.orders=[];state.event=pickEvent();for(let i=0;i<2;i++)makeOrder();say('A new market day begins: '+state.event.name+'! '+state.event.desc+' Target: '+money(state.target)+'.');save();render();}
+function nextDay(){state.day++;state.closed=false;state.earned=0;state.target=80+state.day*22;if((state.day-1)%7===0){state.weeklyServed=0;state.weeklyClaimed=false;}if(state.upgrades.includes('helper'))state.cash+=15;if(state.upgrades.includes('awning'))state.rep+=2;state.orders=[];state.event=pickEvent();for(let i=0;i<2;i++)makeOrder();say('A new market day begins: '+state.event.name+'! '+state.event.desc+' Target: '+money(state.target)+'.');save();render();}
 $('newCustomer').addEventListener('click',makeOrder);$('endDay').addEventListener('click',()=>{if(!state.closed){closeDay();$('endDay').textContent='Open next day →';}else nextDay();});
 $('saveBtn').addEventListener('click',()=>{save();say('Game saved on this device.');});
 $('resetBtn').addEventListener('click',()=>{if(confirm('Start a new market and erase this device’s saved progress?')){state=fresh();state.orders=[];for(let i=0;i<2;i++)makeOrder();save();say('A fresh market is ready.');render();}});
