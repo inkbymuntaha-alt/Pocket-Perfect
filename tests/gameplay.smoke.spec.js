@@ -169,6 +169,31 @@ test('golden spotlight round rewards players who sort the highlighted basket fir
   expect(saved.completed).toContain(9);
 });
 
+test('golden spotlight bonus is lost if another basket is sorted first', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('pp_v02_save', JSON.stringify({
+      level: 9,
+      completed: Array.from({ length: 9 }, (_, index) => index),
+      bestMoves: {},
+      coins: 500
+    }));
+  });
+  await page.goto('http://127.0.0.1:4173/');
+  const order = await page.evaluate(() => {
+    const target = currentData.spotlight.bin;
+    const moves = currentItems.map((item, index) => ({ index, bin: item.bin }));
+    const firstOther = moves.findIndex(move => move.bin !== target);
+    const firstTarget = moves.findIndex(move => move.bin === target);
+    return [moves[firstOther], ...moves.filter((_, index) => index !== firstOther)];
+  });
+  for (const move of order) {
+    await page.locator(`[data-item="${move.index}"]`).click();
+    await page.locator(`[data-bin="${move.bin}"]`).click();
+  }
+  await expect(page.locator('#modal')).toHaveClass(/show/);
+  await expect(page.locator('#rewardLine')).not.toContainText('spotlight bonus');
+});
+
 test('all 500 generated campaign levels have valid, solvable sorting data', async ({ page }) => {
   await openGame(page);
   const result = await page.evaluate(() => {
